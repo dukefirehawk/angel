@@ -2,7 +2,7 @@
 
 ## 8.4.0
 
-* Require Dart >= 3.8
+* Require Dart >= 3.9
 * Updated `lints` to 6.0.0
 * Updated dependencies to the latest release
 
