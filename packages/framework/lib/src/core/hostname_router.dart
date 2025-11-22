@@ -1,5 +1,5 @@
 import 'dart:async';
-import '../../../../container/container/lib/angel3_container.dart';
+import 'package:angel3_container/angel3_container.dart';
 import 'package:angel3_route/angel3_route.dart';
 import 'package:logging/logging.dart';
 import 'env.dart';

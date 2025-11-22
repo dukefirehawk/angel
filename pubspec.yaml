@@ -8,10 +8,10 @@ workspace:
   - packages/http_exception
   - packages/route
   - packages/model
-  - packages/serialize/angel_serialize
-  - packages/serialize/angel_serialize_generator
-  - packages/container/angel_container
-  - packages/container/angel_container_generator
+  - packages/serialize/serialize
+  - packages/serialize/serialize_generator
+  - packages/container/container
+  - packages/container/container_generator
   - packages/mock_request
   - packages/framework
   - packages/user_agent/angel_user_agent

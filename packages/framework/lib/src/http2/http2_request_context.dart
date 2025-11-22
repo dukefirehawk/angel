@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import '../../../../container/container/lib/angel3_container.dart';
+import 'package:angel3_container/angel3_container.dart';
 import 'package:angel3_framework/angel3_framework.dart';
 import 'package:collection/collection.dart' show IterableExtension;
 import 'package:http2/transport.dart';

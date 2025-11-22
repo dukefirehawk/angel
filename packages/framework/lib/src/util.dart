@@ -1,4 +1,4 @@
-import '../../../container/container/lib/angel3_container.dart';
+import 'package:angel3_container/angel3_container.dart';
 
 final RegExp straySlashes = RegExp(r'(^/+)|(/+$)');
 

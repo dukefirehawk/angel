@@ -1,4 +1,4 @@
-import '../../container/lib/angel3_container.dart';
+import 'package:angel3_container/angel3_container.dart';
 import 'package:reflectable/reflectable.dart';
 
 /// A [Reflectable] instance that can be used as an annotation on types to generate metadata for them.

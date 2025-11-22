@@ -6,7 +6,7 @@ import 'dart:typed_data' show BytesBuilder;
 import 'dart:io'
     show Cookie, HeaderValue, HttpHeaders, HttpSession, InternetAddress;
 
-import '../../../../container/container/lib/angel3_container.dart';
+import 'package:angel3_container/angel3_container.dart';
 import 'package:http_parser/http_parser.dart';
 import 'package:belatuk_http_server/belatuk_http_server.dart';
 import 'package:meta/meta.dart';

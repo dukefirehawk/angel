@@ -3,7 +3,7 @@ library;
 import 'dart:async';
 import 'dart:collection' show HashMap;
 import 'dart:convert';
-import '../../../../container/container/lib/angel3_container.dart';
+import 'package:angel3_container/angel3_container.dart';
 import 'package:angel3_http_exception/angel3_http_exception.dart';
 import 'package:angel3_route/angel3_route.dart';
 import 'package:belatuk_combinator/belatuk_combinator.dart';
