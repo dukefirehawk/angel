@@ -1,5 +1,5 @@
 import 'dart:io';
-import 'package:angel3_container/mirrors.dart';
+import '../../container/container/lib/mirrors.dart';
 import 'package:angel3_framework/angel3_framework.dart';
 import 'package:angel3_shelf/angel3_shelf.dart';
 import 'package:logging/logging.dart';

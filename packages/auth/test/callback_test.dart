@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'package:angel3_auth/angel3_auth.dart';
-import 'package:angel3_container/mirrors.dart';
+import '../../container/container/lib/mirrors.dart';
 import 'package:angel3_framework/angel3_framework.dart';
 import 'package:angel3_framework/http.dart';
 import 'dart:convert';

@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io' hide BytesBuilder;
 import 'dart:typed_data';
-import 'package:angel3_container/mirrors.dart';
+import '../../../container/container/lib/mirrors.dart';
 import 'package:angel3_framework/angel3_framework.dart' hide Header;
 import 'package:angel3_framework/http2.dart';
 import 'package:collection/collection.dart' show IterableExtension;

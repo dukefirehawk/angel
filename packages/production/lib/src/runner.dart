@@ -4,7 +4,7 @@ import 'dart:isolate';
 import 'package:belatuk_pub_sub/belatuk_pub_sub.dart';
 import 'package:belatuk_pub_sub/isolate.dart';
 import 'package:intl/intl.dart';
-import 'package:angel3_container/angel3_container.dart';
+import '../../../container/container/lib/angel3_container.dart';
 import 'package:angel3_framework/angel3_framework.dart';
 import 'package:angel3_framework/http.dart';
 import 'package:angel3_framework/http2.dart';
