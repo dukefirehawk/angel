@@ -1,6 +1,5 @@
-import '../../container/lib/angel3_container.dart';
-import '../lib/angel3_container_generator.dart';
-
+import 'package:angel3_container/angel3_container.dart';
+import 'package:angel3_container_generator/angel3_container_generator.dart';
 import 'package:test/test.dart';
 import 'reflector_test.reflectable.dart';
 

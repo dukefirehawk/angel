@@ -1,7 +1,7 @@
 import 'dart:async';
 
-import '../lib/angel3_container.dart';
-import '../lib/mirrors.dart';
+import 'package:angel3_container/angel3_container.dart';
+import 'package:angel3_container/mirrors.dart';
 
 Future<void> main() async {
   // Create a container instance.

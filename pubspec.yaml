@@ -14,7 +14,7 @@ workspace:
   - packages/container/container_generator
   - packages/mock_request
   - packages/framework
-  - packages/user_agent/angel_user_agent
+  - packages/user_agent/user_agent
   - packages/validate
   - packages/redis
   - packages/cache
