@@ -49,7 +49,7 @@ class _FakeExecutor extends QueryExecutor {
 
 @orm
 @serializable
-abstract class _Employee extends Model {
+abstract class EmployeeEntity extends Model {
   String? get firstName;
 
   String? get lastName;

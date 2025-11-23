@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:io';
-import '../../container/container/lib/mirrors.dart';
+import 'package:angel3_container/mirrors.dart';
 import 'package:angel3_framework/angel3_framework.dart';
 import 'package:angel3_framework/http.dart';
 import 'package:logging/logging.dart';

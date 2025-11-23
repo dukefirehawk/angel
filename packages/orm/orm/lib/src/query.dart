@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:angel3_orm/angel3_orm.dart';
+import '../angel3_orm.dart';
 import 'package:logging/logging.dart';
 
 import 'package:optional/optional.dart';

@@ -206,7 +206,7 @@ class EmployeeQueryValues extends MapQueryValues {
 // **************************************************************************
 
 @generatedSerializable
-class Employee extends _Employee {
+class Employee extends EmployeeEntity {
   Employee({
     this.id,
     this.createdAt,
@@ -263,7 +263,7 @@ class Employee extends _Employee {
 
   @override
   bool operator ==(other) {
-    return other is _Employee &&
+    return other is EmployeeEntity &&
         other.id == id &&
         other.createdAt == createdAt &&
         other.updatedAt == updatedAt &&
@@ -345,7 +345,7 @@ class EmployeeSerializer extends Codec<Employee, Map> {
     );
   }
 
-  static Map<String, dynamic> toMap(_Employee? model) {
+  static Map<String, dynamic> toMap(EmployeeEntity? model) {
     if (model == null) {
       throw FormatException("Required field [model] cannot be null");
     }

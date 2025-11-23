@@ -24,7 +24,7 @@ This package contains the SQL executor required by Angel3 ORM to work with MySQL
     import 'package:angel3_serialize/angel3_serialize.dart';
     import 'package:optional/optional.dart';
     
-    part 'car.g.dart';
+    part '../angel_orm_mysql/car.g.dart';
 
     @serializable
     @orm
@@ -50,7 +50,7 @@ This package contains the SQL executor required by Angel3 ORM to work with MySQL
     import 'package:angel3_orm/angel3_orm.dart';
     import 'package:logging/logging.dart';
     import 'package:mysql_client/mysql_client.dart';
-    import 'models/car.dart';
+    import '../angel_orm_mysql/models/car.dart';
 
     void main() async {
     

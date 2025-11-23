@@ -23,7 +23,7 @@ For documentation about the ORM, see [Developer Guide](https://angel3-docs.dukef
     import 'package:angel3_serialize/angel3_serialize.dart';
     import 'package:optional/optional.dart';
     
-    part 'car.g.dart';
+    part '../angel_orm_postgres/car.g.dart';
 
     @serializable
     @orm
@@ -49,7 +49,7 @@ For documentation about the ORM, see [Developer Guide](https://angel3-docs.dukef
     import 'package:angel3_orm/angel3_orm.dart';
     import 'package:logging/logging.dart';
     import 'package:postgres/postgres.dart';
-    import 'models/car.dart';
+    import '../angel_orm_postgres/models/car.dart';
 
     void main() async {
     

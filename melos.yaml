@@ -44,13 +44,13 @@ packages:
   - packages/mongo
   - packages/rethinkdb
   - packages/sembast
-  - packages/orm/angel_migration
-  - packages/orm/angel_migration_runner
-  - packages/orm/angel_orm
-  - packages/orm/angel_orm_generator
-  - packages/orm/angel_orm_postgres
-  - packages/orm/angel_orm_mysql
-  - packages/orm/angel_orm_service
+  - packages/orm/migration
+  - packages/orm/migration_runner
+  - packages/orm/orm
+  - packages/orm/orm_generator
+  - packages/orm/orm_postgres
+  - packages/orm/orm_mysql
+  - packages/orm/orm_service
   - packages/shelf
 
 #scripts:
