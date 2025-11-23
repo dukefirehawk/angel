@@ -53,6 +53,15 @@ Angel3 packages are published under `angel3_` prefix on pub.dev. These packages 
 
 ### Latest development work
 
+Branch: `feature/v9`
+
+* Dart version : 3.9.0 or later.
+* Status       : Early Development
+* Notes        : Major refactoring on going with breaking changes targeting `9.0.0` release
+  * Restructre and rename packages
+  * Removal of dependency on `Mirror`
+  * Fix long overdued performance issues
+
 Branch: `master`
 
 * Dart version : 3.9.0 or later.
@@ -68,8 +77,9 @@ Starting with release 8.5.0. All subsequence releases published to `pub.dev` wil
 
 * Remove the use of Mirror
 * Performance optimsation
-* Support OIDC and SAML2 authentication
-* Upgrade ORM to support
+* Out of the box OIDC and SAML2 support
+* Integrated Open API 3 support
+* Expand ORM to support
   * SQLite
   * Multi tenant
   * Reverse Engineering
@@ -132,24 +142,28 @@ Starting with release 8.5.0. All subsequence releases published to `pub.dev` wil
 
 6. Run as docker. Edit and build the image with the provided `Dockerfile` file.
 
-7. Next, refer to the [developer guide](https://angel3-docs.dukefirehawk.com/) to learn more about Angel3 framework.
+7. Next, refer to the [User Guide](https://angel3-docs.dukefirehawk.com/) to learn more about Angel3 framework.
+
+## Performance Testing
+
+Refer to [Angel3 Performance Test Suite](https://github.com/dart-backend/angel3-perf-test) for more information. It is still in early stage, but eventually will contain test cases for running load testing with [Locust](https://locust.io/) on various key features of Angel3 framework. These test cases can serve as a foundation for building performance tests for any applications developed with Angel3 framework.
 
 ## Performance Benchmark
 
-The performance benchmark can be found at [TechEmpower Framework Benchmarks](https://www.techempower.com/benchmarks/#section=data-r23&test=composite&hw=ph)
+An offical performance benchmark can be found at [TechEmpower Framework Benchmarks](https://www.techempower.com/benchmarks/#section=data-r23)
 
-The test cases are build using standard `Angel3 ORM` template for PostgreSQL and MySQL databases. The result are used for fine-tuning Angel3 framework with respect to other frameworks. The following test cases will be added in the subsequent update to the benchmark.
+The test cases are build using standard `Angel3 ORM` template for PostgreSQL and MySQL databases. The result are used for improving Angel3 framework with respect to other frameworks. The following test cases will be added in the subsequent update to this benchmark.
 
 1. Cache with Redis
 2. Angel3 with MongoDB
 
 ## Documentation
 
-Please visit our [User Guide](https://angel3-docs.dukefirehawk.com/) for more detailed information on the available features of Angel3 framework.
+Refer to [User Guide](https://angel3-docs.dukefirehawk.com/) for more detailed information on the available features of Angel3 framework.
 
 ## Examples
 
-Take various applications under [Examples](https://github.com/dart-backend/angel3-examples) for a spin to get a feel of what Angel3 framework can do.
+Take various applications at [Examples](https://github.com/dart-backend/angel3-examples) for a spin to get a feel of what Angel3 framework can do.
 
 ## Community
 
@@ -161,7 +175,7 @@ If you are interested in contributing to Angel3 framework please check out the [
 
 ### Development Setup
 
-1. Fork `angel` repository
+1. Fork [angel](https://github.com/dart-backend/angel) repository
 
 2. Clone the project to local and create a new branch
 
@@ -180,7 +194,7 @@ If you are interested in contributing to Angel3 framework please check out the [
 
 5. Run `melos exec "dart pub upgrade"` to update all the packages
 
-6. Make changes to the packages
+6. Contribute changes to the desired packages
 
 ## Donation & Support
 
