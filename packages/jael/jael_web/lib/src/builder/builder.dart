@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:build/build.dart';
 import 'package:code_builder/code_builder.dart';
 import 'package:jael3/jael3.dart' as jael;
@@ -18,11 +18,11 @@ Builder jaelComponentBuilder(_) {
 class JaelComponentGenerator extends GeneratorForAnnotation<Jael> {
   @override
   Future<String> generateForAnnotatedElement(
-    Element2 element,
+    Element element,
     ConstantReader annotation,
     BuildStep buildStep,
   ) async {
-    if (element is ClassElement2) {
+    if (element is ClassElement) {
       // Load the template
       String? templateString;
       var inputId = buildStep.inputId;
@@ -72,15 +72,15 @@ class JaelComponentGenerator extends GeneratorForAnnotation<Jael> {
       // Generate a _XJaelTemplate mixin class
       var clazz = Mixin((b) {
         b
-          ..name = '_${element.name3}JaelTemplate'
+          ..name = '_${element.name}JaelTemplate'
           ..implements.add(convertTypeReference(element.supertype));
 
         // Add fields corresponding to each of the class's fields.
-        for (var field in element.fields2) {
+        for (var field in element.fields) {
           b.methods.add(
             Method((b) {
               b
-                ..name = field.name3
+                ..name = field.name
                 ..type = MethodType.getter
                 ..returns = convertTypeReference(field.type);
             }),
@@ -88,11 +88,11 @@ class JaelComponentGenerator extends GeneratorForAnnotation<Jael> {
         }
 
         // ... And methods too.
-        for (var method in element.methods2) {
+        for (var method in element.methods) {
           b.methods.add(
             Method((b) {
               b
-                ..name = method.name3
+                ..name = method.name
                 ..returns = convertTypeReference(method.returnType)
                 ..requiredParameters.addAll(
                   method.formalParameters

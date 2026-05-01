@@ -4,9 +4,9 @@ description: Experimental virtual DOM/SPA engine built on Jael3. Supports SSR.
 publish_to: none
 resolution: workspace
 environment:
-  sdk: '>=3.11.0 <4.0.0'
+  sdk: ">=3.11.0 <4.0.0"
 dependencies:
-  analyzer: ^8.4.0
+  analyzer: ^9.0.0
   build: ^4.0.0
   build_config: ^1.0.0
   code_builder: ^4.0.0

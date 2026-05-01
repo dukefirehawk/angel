@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:build/build.dart';
 import 'package:code_builder/code_builder.dart';
@@ -31,7 +31,7 @@ bool isOptionalParameter(FormalParameterElement e) {
 Parameter convertParameter(FormalParameterElement e) {
   return Parameter((b) {
     b
-      ..name = e.name3 ?? ''
+      ..name = e.name ?? ''
       ..type = convertTypeReference(e.type)
       ..named = e.isNamed
       ..defaultTo = e.defaultValueCode == null
