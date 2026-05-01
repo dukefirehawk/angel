@@ -28,7 +28,42 @@ The available features in Angel3 includes:
 * MongoDB, Sembast and RethinkDB as storage
 * Redis as cache
 
-See all of the available [`packages`](https://angel3-docs.dukefirehawk.com/packages) for more information.
+## The Core Framework
+
+The `packages` directory contains specialized sub-packages that act as individual plugins or modules. Depending on the needs of a project, a developer can plug in specific packages.
+
+They can broadly be categorized as follows:
+
+1. Core Framework & Request Handling
+   * framework: The foundational package (angel3_framework). It provides the base HTTP server, request/response contexts, dependency injection container, and middleware pipelines.
+   * route: The routing engine handling URL matching and route parameters.
+   * container: Dependency Injection (DI) system for resolving services.
+   * configuration: Utilities for loading configuration files (YAML, JSON, .env).
+2. Data Modeling & Persistence (ORM)
+   The framework provides an extensive ORM (angel3_orm) ecosystem with generators and database drivers:
+
+   * orm: Houses the main ORM library, code generator (angel_orm_generator), and SQL dialects for MySQL and PostgreSQL.
+   * model: Base model abstractions for data entities.
+   * serialize: Libraries to serialize/deserialize data to and from JSON using code generation (angel_serialize_generator).
+   * mongo, rethinkdb, sembast: Specialized drivers for interacting with MongoDB, RethinkDB, and Sembast (a NoSQL local database).
+3. Authentication & Security
+   * auth: Core authentication abstractions and strategies (local, token-based).
+   * auth_oauth2 & oauth2: Out-of-the-box support for OAuth2 authentication flows.
+   * security: Security middleware (rate limiting, standard headers, etc.).
+   * cors: Middleware to handle Cross-Origin Resource Sharing effortlessly.
+4. Frontend & Template Rendering
+   Support for processing and returning HTML views to the client:
+
+   * jael: The Jael template engine specifically built for Angel, capable of HTML manipulation. It is split into language servers, preprocessors, and web renderers.
+   * mustache, jinja, markdown: Wrappers/integrations for rendering Mustache templates, Jinja templates, or parsing Markdown into HTML.
+   * html & seo: Utilities for building out HTML responses and optimizing for search engines.
+5. Additional Utilities and APIs
+   * websocket: Integration for real-time bidirectional communication.
+   * client: A client-side library designed to interface seamlessly with Angel3 backends directly from Dart/Flutter.
+   * cache & redis: Caching interfaces with Redis integration to improve response times.
+   * hot & production: Tooling for hot-reloading the server during development, and managing clustering/multi-threading under production loads.
+   * test & mock_request: Testing utilities for mocking HTTP requests without spinning up a real server.
+   * file_service & static: For serving static assets (images, CSS, JS) efficiently.
 
 ## Important Notes
 
@@ -46,7 +81,7 @@ Angel3 packages are published under `angel3_` prefix on pub.dev. These packages 
 
 ### Latest Release Notes (Version: 8.6.0)
 
-* Updated `angel3_` packages to require dart >= 3.9.0
+* Updated `angel3_` packages to require dart >= 3.11.0
 * Updated to `melos:7.3`
 * Updated code generator to use `analyzer` 8.4.x
 * Removed `angel3_orm_test`
@@ -55,7 +90,7 @@ Angel3 packages are published under `angel3_` prefix on pub.dev. These packages 
 
 Branch: `feature/v9`
 
-* Dart version : 3.9.0 or later.
+* Dart version : 3.11.0 or later.
 * Status       : Early Development
 * Notes        : Major refactoring on going with breaking changes targeting `9.0.0` release
   * Restructre and rename packages
@@ -64,7 +99,7 @@ Branch: `feature/v9`
 
 Branch: `master`
 
-* Dart version : 3.9.0 or later.
+* Dart version : 3.11.0 or later.
 * Publish      : Refer to all packages with`angel3_` prefix on [pub.dev](https://pub.dev/publishers/dukefirehawk.com/packages).
 * Status       : Production
 * Notes        : Use this branch for all PR submission
@@ -88,7 +123,7 @@ Starting with release 8.5.0. All subsequence releases published to `pub.dev` wil
 
 ### (Option 1) Create a new project by cloning from boilerplate templates
 
-1. Download and install [Dart](https://dart.dev/get-dart). Minimum 3.9.0.
+1. Download and install [Dart](https://dart.dev/get-dart). Minimum 3.11.0.
 
 2. Clone one of the following starter projects:
    * [Angel3 Basic Template](https://github.com/dukefirehawk/boilerplates/tree/angel3-basic)
@@ -202,3 +237,40 @@ If you like this project and interested in supporting its development work, you 
 
 * [![GitHub Sponsor](https://img.shields.io/static/v1?label=Sponsor&message=%E2%9D%A4&logo=GitHub&color=%23fe8e86)](https://github.com/sponsors/dukefirehawk)
 * [Paypal Donation](https://paypal.me/dukefirehawk?country.x=MY&locale.x=en_US)
+
+### Paid Support
+
+We offer professional paid support for teams and developers using `Angel3` framework. Our support services are designed to help you build faster, deploy with confidence, and scale reliably, whether you’re just getting started or running the framework in production. The fund collected will go into continued improvements of the framework.
+
+#### What we can help with
+
+* Architecture and best-practice guidance
+* Framework setup, configuration, and upgrades
+* Debugging runtime, performance, or build issues
+* Production readiness (scaling, monitoring, deployment)
+* Code reviews and design feedback
+* Custom feature guidance and extensions
+
+#### Who this is for
+
+* Teams using or planning to use `Angel3` in production
+* Developers who want expert guidance from people who maintain the framework
+* Migration from other dart or none dart framework
+
+#### Support options
+
+We offer flexible plans depending on your needs:
+
+* Hourly support for one-off issues
+* Monthly retainers for ongoing help
+* Consulting sessions for architecture and planning
+
+Support is available via email, chat, and scheduled calls.
+
+#### Why paid support?
+
+Paid support ensures you get reliable, professional assistance when it matters most.
+
+#### Get in touch
+
+If you’re interested in paid support, contact us at [dukefirehawk.apps@gmail.com] with your contact and use cases. We will get back within 24 hours.

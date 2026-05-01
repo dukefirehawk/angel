@@ -139,7 +139,7 @@ Future<BuildContext?> buildContext(
 
         if (sField.exclude) {
           // ignore: deprecated_member_use
-          ctx.excluded[field.name3!] = Exclude(
+          ctx.excluded[field.name!] = Exclude(
             canSerialize: sField.canSerialize,
             canDeserialize: sField.canDeserialize,
           );
@@ -175,7 +175,7 @@ Future<BuildContext?> buildContext(
           foundNone = false;
 
           // ignore: deprecated_member_use
-          ctx.excluded[field.name3!] = Exclude(
+          ctx.excluded[field.name!] = Exclude(
             canSerialize: cr.read('canSerialize').boolValue,
             canDeserialize: cr.read('canDeserialize').boolValue,
           );
