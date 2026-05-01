@@ -3,6 +3,7 @@
 ## 8.9.0
 
 * Require Dart >= 3.11
+* Updated `analyzer` to 13.0.0
 
 ## 8.8.0
 
