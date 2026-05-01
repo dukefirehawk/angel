@@ -3,9 +3,13 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 8.7.0
+
+- Require Dart >= 3.11.0
+
 ## 8.6.0
 
-- Require Dart >= 3.8
+- Require Dart >= 3.8.0
 - Updated `lints` to 6.0.0
 - Updated dependencies to the latest release
 
