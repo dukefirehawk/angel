@@ -532,7 +532,7 @@ class RelationFieldImpl extends ShimFieldImpl {
     this.originalField,
   ) : super(
         type as TypeImpl,
-        Reference.root(),
+        RootReference(),
         FieldFragmentImpl(name: fieldName),
       );
 

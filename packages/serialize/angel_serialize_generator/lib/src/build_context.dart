@@ -270,7 +270,10 @@ class ShimFieldImpl extends FieldElementImpl {
     TypeImpl shimFieldType,
     Reference shimFieldRef,
     FieldFragmentImpl firstFragment,
-  ) : super(reference: shimFieldRef, firstFragment: firstFragment) {
+  ) : super(
+        reference: shimFieldRef as MemberReference,
+        firstFragment: firstFragment,
+      ) {
     type = shimFieldType;
   }
 }
