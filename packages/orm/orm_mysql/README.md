@@ -3,7 +3,7 @@
 ![Pub Version (including pre-releases)](https://img.shields.io/pub/v/angel3_orm_mysql?include_prereleases)
 [![Null Safety](https://img.shields.io/badge/null-safety-brightgreen)](https://dart.dev/null-safety)
 [![Discord](https://img.shields.io/discord/1060322353214660698)](https://discord.gg/3X6bxTUdCM)
-[![License](https://img.shields.io/github/license/dart-backend/angel)](https://github.com/dart-backend/angel/tree/master/packages/orm/angel_orm_mysql/LICENSE)
+[![License](https://img.shields.io/github/license/dart-backend/angel)](https://github.com/dart-backend/angel/tree/master/packages/orm/orm_mysql/LICENSE)
 
 This package contains the SQL executor required by Angel3 ORM to work with MySQL or MariaDB databases. In order to better support both MySQL and MariaDB, two different flavors of drives have been included; `mysql_client` and `mysql1`. They are implmented as `MySqlExecutor` and `MariaDbExecutor` respectively.
 

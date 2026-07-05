@@ -3,7 +3,7 @@
 ![Pub Version (including pre-releases)](https://img.shields.io/pub/v/angel3_orm_generator?include_prereleases)
 [![Null Safety](https://img.shields.io/badge/null-safety-brightgreen)](https://dart.dev/null-safety)
 [![Discord](https://img.shields.io/discord/1060322353214660698)](https://discord.gg/3X6bxTUdCM)
-[![License](https://img.shields.io/github/license/dart-backend/angel)](https://github.com/dart-backend/angel/tree/master/packages/orm/angel3_orm_generator/LICENSE)
+[![License](https://img.shields.io/github/license/dart-backend/angel)](https://github.com/dart-backend/angel/tree/master/packages/orm/orm_generator/LICENSE)
 
 The builder for generating the following code for Angel3 ORM:
 
