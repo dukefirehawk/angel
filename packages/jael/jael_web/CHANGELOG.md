@@ -1,8 +1,8 @@
 # Change Log
 
-## 8.1.0
+## 9.0.0
 
-* Require Dart >= 3.11
+* Require Dart >= 3.12
 * Updated `analyzer` to 13.0.0
 
 ## 8.0.0

@@ -1,8 +1,8 @@
 # Change Log
 
-## 8.9.0
+## 9.0.0
 
-* Require Dart >= 3.11
+* Require Dart >= 3.12
 * Updated `analyzer` to 13.0.0
 
 ## 8.8.0
@@ -22,7 +22,7 @@
 
 ## 8.6.0
 
-* Require Dart >= 3.11.0
+* Require Dart >= 3.8.0
 * Updated `lints` to 6.0.0
 * Updated dependencies to the latest release
 * Updated `analyzer` to 7.7.x

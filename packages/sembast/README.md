@@ -13,7 +13,7 @@ Add the following to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  angel3_sembast: ^8.0.0
+  angel3_sembast: ^9.0.0
 ```
 
 ## Usage
