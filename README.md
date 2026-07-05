@@ -79,45 +79,29 @@ Angel3 packages are published under `angel3_` prefix on pub.dev. These packages 
 
 ## Status
 
-### Latest Release Notes (version: 9.0.0)
+### Release Notes (version: 9.0.0)
 
-* Updated `angel3_` packages to Require Dart >= 3.8.0
-* Updated to `melos:7.3`
-* Updated code generator to use `analyzer` 8.4.x
-* Removed `angel3_orm_test`
-
-### Latest development work
-
-Branch: `feature/v9`
-
-* Dart version : 3.11.0 or later.
-* Status       : Early Development
-* Notes        : Major refactoring on going with breaking changes targeting `9.0.0` release
-  * Restructre and rename packages
-  * Removal of dependency on `Mirror`
-  * Fix long overdued performance issues
+* Updated `angel3_` packages to Require Dart >= 3.12.0
+* Updated to `melos:8.1
+* Updated code generator to use `analyzer` 13.0.x
 
 Branch: `master`
 
-* Dart version : 3.11.0 or later.
+* Dart version : 3.12.0 or later.
 * Publish      : Refer to all packages with`angel3_` prefix on [pub.dev](https://pub.dev/publishers/dukefirehawk.com/packages).
 * Status       : Production
 * Notes        : Use this branch for all PR submission
 
-### Archieved releases
-
-Starting with release 8.5.0. All subsequence releases published to `pub.dev` will be available on a release branch. The branch name will adopt the following naming conventions, `release/<version>`. For example: `release/8.5` branch is for release version 8.5 on `pub.dev`.
-
 ### What is in the pipeline?
 
 * Remove the use of Mirror
-* Performance optimsation
+* Performance optimization
 * Out of the box OIDC and SAML2 support
 * Integrated Open API 3 support
 * Expand ORM to support
+  * SQL Server
+  * Oracle DB
   * SQLite
-  * Multi tenant
-  * Reverse Engineering
 
 ## Installation and Setup
 
