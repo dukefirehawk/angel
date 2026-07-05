@@ -2,7 +2,7 @@
 
 ## 9.0.0
 
-* Require Dart >= 3.9
+* Require Dart >= 3.12
 * Refactored code
 
 ## 8.4.0

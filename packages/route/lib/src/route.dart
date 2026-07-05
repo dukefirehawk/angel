@@ -91,7 +91,7 @@ class RouteResult {
 
   String? _tail;
 
-  RouteResult(this.params, {String? tail}) : _tail = tail;
+  RouteResult(this.params, {this._tail});
 
   void _setTail(String? v) => _tail ??= v;
 
