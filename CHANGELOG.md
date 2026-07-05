@@ -3,9 +3,9 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
-## 8.7.0
+## 9.0.0
 
-- Require Dart >= 3.11.0
+- Require Dart >= 3.12.0
 
 ## 8.6.0
 

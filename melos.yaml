@@ -4,13 +4,13 @@ packages:
   - packages/http_exception
   - packages/route
   - packages/model
-  - packages/serialize/angel_serialize
-  - packages/serialize/angel_serialize_generator
-  - packages/container/angel_container
-  - packages/container/angel_container_generator
+  - packages/serialize/serialize
+  - packages/serialize/serialize_generator
+  - packages/container/container
+  - packages/container/container_generator
   - packages/mock_request
   - packages/framework
-  - packages/user_agent/angel_user_agent
+  - packages/user_agent/user_agent
   - packages/validate
   - packages/redis
   - packages/cache
@@ -44,13 +44,13 @@ packages:
   - packages/mongo
   - packages/rethinkdb
   - packages/sembast
-  - packages/orm/angel_migration
-  - packages/orm/angel_migration_runner
-  - packages/orm/angel_orm
-  - packages/orm/angel_orm_generator
-  - packages/orm/angel_orm_postgres
-  - packages/orm/angel_orm_mysql
-  - packages/orm/angel_orm_service
+  - packages/orm/migration
+  - packages/orm/migration_runner
+  - packages/orm/orm
+  - packages/orm/orm_generator
+  - packages/orm/orm_postgres
+  - packages/orm/orm_mysql
+  - packages/orm/orm_service
   - packages/shelf
 
 #scripts:

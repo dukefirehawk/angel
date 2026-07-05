@@ -79,9 +79,9 @@ Angel3 packages are published under `angel3_` prefix on pub.dev. These packages 
 
 ## Status
 
-### Latest Release Notes (Version: 8.6.0)
+### Latest Release Notes (version: 9.0.0)
 
-* Updated `angel3_` packages to require dart >= 3.11.0
+* Updated `angel3_` packages to Require Dart >= 3.8.0
 * Updated to `melos:7.3`
 * Updated code generator to use `analyzer` 8.4.x
 * Removed `angel3_orm_test`

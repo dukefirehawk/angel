@@ -47,8 +47,8 @@ The framework is divided into several categories of packages:
 ## Technology Stack & Requirements
 
 - **Language**: Dart
-- **Minimum SDK Version**: `>=3.11.0 <4.0.0`
-- **Monorepo Management**: `melos` (`^7.3.0`)
+- **Minimum SDK Version**: `>=3.12.0 <4.0.0`
+- **Monorepo Management**: `melos` (`^8.1.0`)
 
 ## Development Workflow
 

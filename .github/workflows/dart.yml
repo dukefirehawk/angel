@@ -25,20 +25,20 @@ jobs:
           
       - id: angel3_container_upgrade
         name: angel3_container; Upgrade depedencies
-        working-directory: packages/container/angel_container
+        working-directory: packages/container/container
         run: dart pub upgrade
 
       - name: angel3_container; Verify formatting
-        working-directory: packages/container/angel_container
+        working-directory: packages/container/container
         run: dart format --output=none --set-exit-if-changed .
 
       # Consider passing '--fatal-infos' for slightly stricter analysis.
       - name: angel3_container; Analyze source code
-        working-directory: packages/container/angel_container
+        working-directory: packages/container/container
         run: dart analyze
 
       - name: angel3_container; Run tests
-        working-directory: packages/container/angel_container
+        working-directory: packages/container/container
         run: dart test
 
       - id: angel3_framework_upgrade
@@ -92,69 +92,50 @@ jobs:
       # Angel3 ORM
       - id: angel3_orm_upgrade
         name: angel3_orm; Upgrade depedencies
-        working-directory: packages/orm/angel_orm
+        working-directory: packages/orm/orm
         run: dart pub upgrade
 
       - name: angel3_orm; Verify formatting
-        working-directory: packages/orm/angel_orm
+        working-directory: packages/orm/orm
         run: dart format --output=none --set-exit-if-changed .
 
       # Consider passing '--fatal-infos' for slightly stricter analysis.
       - name: angel3_orm; Analyze source code
-        working-directory: packages/orm/angel_orm
+        working-directory: packages/orm/orm
         run: dart analyze
 
       # Angel3 ORM Generator
       - id: angel3_orm_generator_upgrade
         name: angel3_orm_generator; Upgrade depedencies
-        working-directory: packages/orm/angel_orm_generator
+        working-directory: packages/orm/orm_generator
         run: dart pub upgrade
 
       - name: angel3_orm_generator; Verify formatting
-        working-directory: packages/orm/angel_orm_generator
+        working-directory: packages/orm/orm_generator
         run: dart format --output=none --set-exit-if-changed .
 
       # Consider passing '--fatal-infos' for slightly stricter analysis.
       - name: angel3_orm_generator; Analyze source code
-        working-directory: packages/orm/angel_orm_generator
+        working-directory: packages/orm/orm_generator
         run: dart analyze
-
-      # Angel3 ORM Test
-      #- id: angel3_orm_test_upgrade
-      #  name: angel3_orm_test; Upgrade depedencies
-      #  working-directory: packages/orm/angel_orm_test
-      #  run: dart pub upgrade
-
-      #- name: angel3_orm_test; Run orm code generator
-      #  working-directory: packages/orm/angel_orm_test
-      #  run: dart run build_runner build --delete-conflicting-outputs
-
-      #- name: angel3_orm_test; Verify formatting
-      #  working-directory: packages/orm/angel_orm_test
-      #  run: dart format --output=none --set-exit-if-changed .
-
-      # Consider passing '--fatal-infos' for slightly stricter analysis.
-      #- name: angel3_orm_test; Analyze source code
-      #  working-directory: packages/orm/angel_orm_test
-      #  run: dart analyze
 
       # Angel3 ORM PostgreSQL
       - id: angel3_orm_postgres_upgrade
         name: angel3_orm_postgres; Upgrade depedencies
-        working-directory: packages/orm/angel_orm_postgres
+        working-directory: packages/orm/orm_postgres
         run: dart pub upgrade
 
       - name: angel3_orm_postgres; Verify formatting
-        working-directory: packages/orm/angel_orm_postgres
+        working-directory: packages/orm/orm_postgres
         run: dart format --output=none --set-exit-if-changed .
 
       # Consider passing '--fatal-infos' for slightly stricter analysis.
       - name: angel3_orm_postgres; Analyze source code
-        working-directory: packages/orm/angel_orm_postgres
+        working-directory: packages/orm/orm_postgres
         run: dart analyze
 
       - name: angel3_orm_postgres; Run tests
-        working-directory: packages/orm/angel_orm_postgres
+        working-directory: packages/orm/orm_postgres
         run: dart test
         env:
           # The hostname used to communicate with the PostgreSQL service container
