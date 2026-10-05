@@ -6,6 +6,9 @@
 * feat: Added `Http2RequestContext.hasSession` to check for a session without creating one
 * fix: `ResponseContext.done` now completes when the response is closed (or with the first error passed to `addError`), instead of never completing
 * fix: `res.redirectTo()` without `params` no longer fails with a null check error
+* fix: Services with non-String ids (e.g. `int`) mounted with `app.use` now receive parsed ids; previously every REST request by id failed with a 500 error. An id of `null` or one that cannot be parsed now returns 400
+* fix: `Service.parseId` now parses nullable types (e.g. `int?`) like their non-nullable form, and throws a `FormatException` for a `null` id when the type cannot hold `'null'`, instead of a `TypeError`
+* fix: An HTTP/1.1 response with an invalid header that bypasses validation (e.g. via `headers.putIfAbsent`) and no body now fails with 500 error, instead of never being sent
 
 ## 9.2.0
 
