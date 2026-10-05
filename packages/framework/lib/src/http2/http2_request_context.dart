@@ -22,6 +22,7 @@ class Http2RequestContext extends RequestContext<ServerTransportStream?> {
   ServerTransportStream? _stream;
   Uri? _uri;
   HttpSession? _session;
+  HttpSession Function()? _createSession;
 
   Http2RequestContext._(this.container);
 
@@ -33,8 +34,9 @@ class Http2RequestContext extends RequestContext<ServerTransportStream?> {
     Socket socket,
     Angel app,
     Map<String, MockHttpSession> sessions,
-    Uuid uuid,
-  ) {
+    Uuid uuid, {
+    void Function(MockHttpSession session)? onSessionCreated,
+  }) {
     var c = Completer<Http2RequestContext>();
     var req = Http2RequestContext._(app.container.createChild())
       ..app = app
@@ -62,12 +64,16 @@ class Http2RequestContext extends RequestContext<ServerTransportStream?> {
       var sessionId = cookies
           .firstWhereOrNull((c) => c.name == 'DARTSESSID')
           ?.value;
-      var session = sessionId == null ? null : sessions[sessionId];
-      if (session == null) {
+      req._session = sessionId == null ? null : sessions[sessionId];
+      // A new session is only created once `session` is read, like dart:io:
+      // creating one per cookie-less request would let any client fill the
+      // session store until the sessions expire.
+      req._createSession = () {
         var id = uuid.v4();
-        session = sessions[id] = MockHttpSession(id: id);
-      }
-      req._session = session;
+        var session = sessions[id] = MockHttpSession(id: id);
+        onSessionCreated?.call(session);
+        return session;
+      };
 
       c.complete(req);
     }
@@ -177,10 +183,13 @@ class Http2RequestContext extends RequestContext<ServerTransportStream?> {
   @override
   Uri? get uri => _uri;
 
+  /// The user's HTTP session, created on first access if the client did not
+  /// send the id of an existing one.
   @override
-  HttpSession? get session {
-    return _session;
-  }
+  HttpSession? get session => _session ??= _createSession?.call();
+
+  /// Whether this request has a session, without creating one.
+  bool get hasSession => _session != null;
 
   @override
   InternetAddress get remoteAddress => _socket.remoteAddress;

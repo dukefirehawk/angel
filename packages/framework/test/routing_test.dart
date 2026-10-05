@@ -96,6 +96,10 @@ void main() {
     app.get('/named', (req, ResponseContext res) async {
       await res.redirectTo('Named routes', {'name': 'tests'});
     });
+    app.get('/hello-route', (req, res) => 'hello').name = 'Hello route';
+    app.get('/named-no-params', (req, ResponseContext res) async {
+      await res.redirectTo('Hello route');
+    });
     app.get('/log', (RequestContext req, res) async {
       print('Query: ${req.queryParameters}');
       return 'Logged';
@@ -207,6 +211,11 @@ void main() {
     var response = await client.get(Uri.parse('$url/named'));
     print(response.body);
     expect(json.decode(response.body), equals('Hello tests'));
+  });
+
+  test('Redirect to a named route without params', () async {
+    var response = await client.get(Uri.parse('$url/named-no-params'));
+    expect(json.decode(response.body), equals('hello'));
   });
 
   test('Match routes, even with query params', () async {

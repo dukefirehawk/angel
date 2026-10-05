@@ -1,5 +1,12 @@
 # Change Log
 
+## 9.3.0
+
+* fix: HTTP/2 sessions are now created only when `req.session` is first read, instead of for every request without a `DARTSESSID` cookie, which let any client fill the session store. **Behaviour change:** responses that never use the session no longer set a `DARTSESSID` cookie
+* feat: Added `Http2RequestContext.hasSession` to check for a session without creating one
+* fix: `ResponseContext.done` now completes when the response is closed (or with the first error passed to `addError`), instead of never completing
+* fix: `res.redirectTo()` without `params` no longer fails with a null check error
+
 ## 9.2.0
 
 * feat: Services, hooked services and `@Middleware` lookups now work without reflection; annotations are ignored when no reflector is configured instead of throwing an errror. This enabled support for `dart compile exe` to be used to build applications without reflection.

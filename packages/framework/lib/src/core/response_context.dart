@@ -31,7 +31,9 @@ abstract class ResponseContext<RawResponse>
 
   //final log = Logger('ResponseContext');
 
-  Completer? _done;
+  // Errors are also reported to the zone (see [addError]), so the error
+  // completing [done] must not count as unhandled when nobody awaits it.
+  final Completer<void> _done = Completer<void>()..future.ignore();
   int _statusCode = 200;
 
   /// The [Angel] instance that is sending a response.
@@ -166,8 +168,10 @@ abstract class ResponseContext<RawResponse>
   /// Points to the [RequestContext] corresponding to this response.
   RequestContext? get correspondingRequest;
 
+  /// Completes once the response is closed (see [close]), or with the first
+  /// error passed to [addError]. Never completes for a [detach]ed response.
   @override
-  Future get done => (_done ?? Completer()).future;
+  Future get done => _done.future;
 
   /// Headers that will be sent to the user.
   ///
@@ -316,7 +320,7 @@ abstract class ResponseContext<RawResponse>
       (buffer as LockableBytesBuilder).lock();
     }
 
-    if (_done?.isCompleted == false) _done!.complete();
+    if (!_done.isCompleted) _done.complete();
     return Future.value();
   }
 
@@ -428,11 +432,10 @@ abstract class ResponseContext<RawResponse>
 
     if (matched != null) {
       await redirect(
-        matched.makeUri(
-          params!.keys.fold<Map<String, dynamic>>({}, (out, k) {
-            return out..[k.toString()] = params[k];
-          }),
-        ),
+        matched.makeUri({
+          for (var MapEntry(:key, :value) in (params ?? const {}).entries)
+            key.toString(): value,
+        }),
         code: code,
       );
       return;
@@ -527,14 +530,11 @@ abstract class ResponseContext<RawResponse>
 
   @override
   void addError(Object error, [StackTrace? stackTrace]) {
-    if (_done?.isCompleted == false) {
-      _done!.completeError(error, stackTrace);
-    } else if (_done == null) {
-      if (stackTrace != null) {
-        Zone.current.handleUncaughtError(error, stackTrace);
-      } else {
-        app?.logger.warning('[ResponseContext] stackTrace is null');
-      }
+    if (!_done.isCompleted) _done.completeError(error, stackTrace);
+    if (stackTrace != null) {
+      Zone.current.handleUncaughtError(error, stackTrace);
+    } else {
+      app?.logger.warning('[ResponseContext] stackTrace is null');
     }
   }
 

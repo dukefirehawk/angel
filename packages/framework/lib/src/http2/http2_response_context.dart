@@ -97,13 +97,17 @@ class Http2ResponseContext extends ResponseContext<ServerTransportStream> {
       headers.add(Header.ascii(key.toLowerCase(), this.headers[key]!));
     }
 
-    // Persist session ID. HTTP/2 here always runs over TLS, so the cookie
-    // is Secure; HttpOnly keeps it from page scripts.
-    cookies.add(
-      Cookie('DARTSESSID', _req!.session!.id)
-        ..secure = true
-        ..httpOnly = true,
-    );
+    // Persist the session ID, if the request has a session. HTTP/2 here
+    // always runs over TLS, so the cookie is Secure; HttpOnly keeps it from
+    // page scripts.
+    var req = _req;
+    if (req != null && req.hasSession) {
+      cookies.add(
+        Cookie('DARTSESSID', req.session!.id)
+          ..secure = true
+          ..httpOnly = true,
+      );
+    }
 
     // Send all cookies
     for (var cookie in cookies) {

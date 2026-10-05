@@ -163,9 +163,11 @@ class AngelHttp2
       app,
       _sessions,
       _uuid,
+      onSessionCreated: (session) =>
+          _sessionLastSeen[session.id] = DateTime.now(),
     );
-    var sessionId = req.session?.id;
-    if (sessionId != null) _sessionLastSeen[sessionId] = DateTime.now();
+    // Reading `req.session` here would create a session for every request.
+    if (req.hasSession) _sessionLastSeen[req.session!.id] = DateTime.now();
     return req;
   }
 

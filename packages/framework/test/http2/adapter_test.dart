@@ -191,6 +191,11 @@ void main() {
       expect(second, first);
     });
 
+    test('are not created for requests that do not use them', () async {
+      var response = await client.get(serverRoot);
+      expect(response.headers['set-cookie'], isNull);
+    });
+
     test('do not adopt an unknown client-chosen id', () async {
       var id = await sessionId(cookie: 'DARTSESSID=attacker-chosen');
       expect(id, isNot('attacker-chosen'));
@@ -258,7 +263,7 @@ void main() {
   });
 
   test('the session cookie is Secure and HttpOnly', () async {
-    var response = await client.get(serverRoot);
+    var response = await client.get(serverRoot.replace(path: '/session'));
     var cookie = response.headers['set-cookie']!;
     expect(cookie, startsWith('DARTSESSID='));
     expect(cookie, contains('Secure'));
