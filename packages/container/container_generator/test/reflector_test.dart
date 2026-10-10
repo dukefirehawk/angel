@@ -66,6 +66,18 @@ void main() {
     });
   });
 
+  test('reports which parameters have a default value', () {
+    var constructor = reflector.reflectClass(WithDefaults).constructors.single;
+    expect(
+      {for (var p in constructor.parameters) p.name: p.hasDefaultValue},
+      {'artist': false, 'count': true},
+    );
+  });
+
+  test('make keeps the default of an unregistered parameter', () {
+    expect(container.make<WithDefaults>().count, 1);
+  });
+
   // Skip as pkg:reflectable cannot reflect on closures at all (yet)
   //testReflector(reflector);
 }
@@ -213,4 +225,12 @@ class AlbumLength {
   AlbumLength(this.artist, this.album);
 
   int get totalLength => artist.name.length + album.title.length;
+}
+
+@contained
+class WithDefaults {
+  final Artist artist;
+  final int count;
+
+  WithDefaults(this.artist, {this.count = 1});
 }

@@ -285,7 +285,18 @@ ReflectedParameter _convertParameter(
         : reflector.reflectType(mirror.type.reflectedType)!,
     !mirror.isOptional,
     mirror.isNamed,
+    hasDefaultValue: _hasDefaultValue(mirror),
   );
+}
+
+/// Whether [mirror] declares a default value; `false` if the [Reflectable]
+/// lacks the `DeclarationsCapability` needed to tell (`contained` has it).
+bool _hasDefaultValue(ParameterMirror mirror) {
+  try {
+    return mirror.hasDefaultValue;
+  } on NoSuchCapabilityError {
+    return false;
+  }
 }
 
 /// A type [reflectable] cannot reflect: only the [Type] itself is known.
