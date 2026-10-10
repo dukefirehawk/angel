@@ -270,4 +270,26 @@ void main() {
     app.use('/later', service);
     expect(app.findService('later'), isNotNull);
   });
+
+  for (var production in [false, true]) {
+    test('group middleware runs (production: $production)', () async {
+      var app = Angel(
+        environment: AngelEnvironment(
+          production ? 'production' : 'development',
+        ),
+      );
+      app.group(
+        '/admin',
+        (router) => router.get('/secret', (req, res) => 'secret'),
+        middleware: [(req, res) => throw AngelHttpException.forbidden()],
+      );
+      app.optimizeForProduction();
+      var rq = MockHttpRequest('GET', Uri(path: '/admin/secret'));
+      await rq.close();
+      await AngelHttp(app).handleRequest(rq);
+      var body = await rq.response.transform(utf8.decoder).join();
+      expect(rq.response.statusCode, 403);
+      expect(body, isNot(contains('secret')));
+    });
+  }
 }

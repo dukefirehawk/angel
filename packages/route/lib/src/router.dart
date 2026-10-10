@@ -35,17 +35,24 @@ class Router<T> {
   Map<Pattern, Router<T>> get mounted =>
       Map<Pattern, Router<T>>.unmodifiable(_mounted);
 
+  /// All routes, with those of mounted routers joined to their mount path.
+  ///
+  /// A mounted router's own middleware (e.g. from [group]) is prepended to
+  /// the handlers of each of its routes, since only this router's
+  /// [middleware] is applied separately when resolving.
   List<Route<T>> get routes {
     return _routes.fold<List<Route<T>>>([], (out, route) {
       if (route is SymlinkRoute<T>) {
-        var childRoutes = route.router.routes.fold<List<Route<T>>>([], (
-          out,
-          r,
-        ) {
-          return out..add(route.path.isEmpty ? r : Route.join(route, r));
-        });
-
-        return out..addAll(childRoutes);
+        var middleware = route.router._middleware;
+        for (var r in route.router.routes) {
+          var joined = route.path.isEmpty ? r : Route.join(route, r);
+          out.add(
+            middleware.isEmpty
+                ? joined
+                : joined._withHandlers([...middleware, ...joined.handlers]),
+          );
+        }
+        return out;
       } else {
         return out..add(route);
       }
@@ -485,7 +492,8 @@ class ChainedRouter<T> extends Router<T> {
   }) {
     final router = ChainedRouter<T>(_root, [..._handlers, ...middleware]);
     callback(router);
-    return mount(path, router)..name = name;
+    // Its routes already include the chained handlers.
+    return super.mount(path, router)..name = name;
   }
 
   @override
@@ -497,7 +505,8 @@ class ChainedRouter<T> extends Router<T> {
   }) async {
     final router = ChainedRouter<T>(_root, [..._handlers, ...middleware]);
     await callback(router);
-    return mount(path, router)..name = name;
+    // Its routes already include the chained handlers.
+    return super.mount(path, router)..name = name;
   }
 
   @override
