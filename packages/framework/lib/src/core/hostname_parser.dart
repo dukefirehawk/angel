@@ -1,5 +1,3 @@
-import 'dart:collection';
-
 import 'package:string_scanner/string_scanner.dart';
 
 /// Parses a string into a [RegExp] that is matched against hostnames.
@@ -17,51 +15,36 @@ class HostnameSyntaxParser {
     );
   }
 
+  /// Parses whole hostnames separated by `|`, any of which may match (e.g.
+  /// `example.com|api.example.com`).
   RegExp parse() {
+    if (_scanner.isDone) throw _formatExc('Invalid or empty hostname.');
+    var alternatives = [_parseHostname()];
+    while (_scanner.scan('|')) {
+      alternatives.add(_parseHostname());
+    }
+
+    var pattern = alternatives.length == 1
+        ? alternatives.single
+        : alternatives.map((a) => '($a)').join('|');
+    return RegExp('^($pattern)\$', caseSensitive: false);
+  }
+
+  /// Parses one hostname, up to a `|` or the end.
+  String _parseHostname() {
     var b = StringBuffer();
-    var parts = Queue<String>();
-
-    while (!_scanner.isDone) {
-      if (_scanner.scan('|')) {
-        if (parts.isEmpty) {
-          throw _formatExc('No hostname parts found before "|".');
-        } else {
-          var next = _parseHostnamePart();
-          if (next.isEmpty) {
-            throw _formatExc('No hostname parts found after "|".');
-          } else {
-            var prev = parts.removeLast();
-            parts.addLast('(($prev)|($next))');
-          }
-        }
-      } else {
-        var part = _parseHostnamePart();
-        if (part.isNotEmpty) {
-          if (_scanner.scan('.')) {
-            var subPart = _parseHostnamePart(shouldThrow: false);
-            while (subPart.isNotEmpty) {
-              part += '\\.$subPart';
-              if (_scanner.scan('.')) {
-                subPart = _parseHostnamePart(shouldThrow: false);
-              } else {
-                break;
-              }
-            }
-          }
-          parts.add(part);
-        }
-      }
+    while (!_scanner.isDone && !_scanner.matches('|')) {
+      b.write(_parseHostnamePart());
+      if (_scanner.scan('.')) b.write('\\.');
     }
-
-    while (parts.isNotEmpty) {
-      b.write(parts.removeFirst());
-    }
-
     if (b.isEmpty) {
-      throw _formatExc('Invalid or empty hostname.');
-    } else {
-      return RegExp('^$b\$', caseSensitive: false);
+      throw _formatExc(
+        _scanner.isDone
+            ? 'No hostname parts found after "|".'
+            : 'No hostname parts found before "|".',
+      );
     }
+    return b.toString();
   }
 
   String _parseHostnamePart({bool shouldThrow = true}) {

@@ -63,7 +63,9 @@ class MapService extends Service<String?, Map<String, dynamic>> {
       } else if (autoIdAndDateFields != false) {
         return item['id'] == id.toString();
       } else {
-        return item['id'] == id;
+        // Ids arrive as strings over REST, so `'1'` also matches `1`.
+        return item['id'] == id ||
+            (id != null && item['id'].toString() == id.toString());
       }
     };
   }

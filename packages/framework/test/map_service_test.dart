@@ -178,6 +178,16 @@ void main() {
     });
   });
 
+  group('ids without auto ids', () {
+    test('match by their string form', () async {
+      var plain = MapService(autoIdAndDateFields: false);
+      await plain.create({'id': 1, 'text': 'a'});
+      expect((await plain.read('1'))['text'], 'a');
+      expect((await plain.modify('1', {'text': 'b'}))['text'], 'b');
+      expect((await plain.remove('1'))['text'], 'b');
+    });
+  });
+
   group('update (PUT) without auto ids', () {
     test('keeps the record findable', () async {
       var plain = MapService(autoIdAndDateFields: false);

@@ -120,17 +120,39 @@ abstract class ResponseContext<RawResponse>
   /// request's `Accept-Encoding` header, or `null` for none.
   ///
   /// Chosen once, on first access (normally when output starts), so handlers
-  /// can still change [encoders] before writing.
+  /// can still change [encoders] before writing. A body that is already
+  /// encoded (a `content-encoding` header is set, e.g. for a precompressed
+  /// file) or a 204 or 304 response, which has no body, is not encoded.
+  ///
+  /// When [encoders] is not empty, choosing also adds `Vary: Accept-Encoding`
+  /// to [headers], so shared caches keep encoded and plain responses apart.
   ({String name, Converter<List<int>, List<int>> encoder})?
   get selectedEncoder {
     if (!_encoderSelected) {
       _encoderSelected = true;
-      _selectedEncoder = selectEncoder(
-        encoders,
-        correspondingRequest?.headers?.value('accept-encoding'),
-      );
+      if (encoders.isNotEmpty) _varyByAcceptEncoding();
+      if (!headers.containsKey('content-encoding') &&
+          statusCode != 204 &&
+          statusCode != 304) {
+        _selectedEncoder = selectEncoder(
+          encoders,
+          correspondingRequest?.headers?.value('accept-encoding'),
+        );
+      }
     }
     return _selectedEncoder;
+  }
+
+  void _varyByAcceptEncoding() {
+    var vary = headers['vary'];
+    if (vary == null || vary.trim().isEmpty) {
+      headers['vary'] = 'Accept-Encoding';
+    } else if (vary.trim() != '*' &&
+        !vary
+            .split(',')
+            .any((v) => v.trim().toLowerCase() == 'accept-encoding')) {
+      headers['vary'] = '$vary, Accept-Encoding';
+    }
   }
 
   /// Picks the first encoder in [encoders] named by [acceptEncoding], in the
@@ -337,10 +359,24 @@ abstract class ResponseContext<RawResponse>
     MediaType? contentType,
   }) {
     if (!isOpen) throw closed();
+    // The name is written into a script and is often taken from the query
+    // string (`?callback=`), so only a plain, optionally dotted, identifier
+    // is allowed.
+    if (!_jsIdentifierPath.hasMatch(callbackName)) {
+      throw AngelHttpException.badRequest(
+        message: 'Invalid JSONP callback name.',
+      );
+    }
     this.contentType = contentType ?? MediaType('application', 'javascript');
-    write('$callbackName(${serializer(value)})');
-    return close();
+    return Future.sync(() => serializer(value)).then((json) {
+      write('$callbackName($json)');
+      return close();
+    });
   }
+
+  static final RegExp _jsIdentifierPath = RegExp(
+    r'^[A-Za-z_$][\w$]*(\.[A-Za-z_$][\w$]*)*$',
+  );
 
   /// Renders a view to the response stream, and closes the response.
   Future<void> render(String view, [Map<String, dynamic>? data]) {

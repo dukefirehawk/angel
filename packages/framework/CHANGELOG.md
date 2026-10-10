@@ -33,6 +33,12 @@
 * fix: A `parseBody` call made while the body is being parsed now waits for that parse, instead of returning before the body is available. After a failed parse, later calls fail with the same error, instead of succeeding with an empty body; `hasParsedBody` is `true` only once parsing has succeeded
 * fix: Multipart uploads with a filename and a text `Content-Type` (e.g. `text/csv`, `application/json`) are now in `uploadedFiles` with their original bytes, instead of being decoded into `bodyAsMap`
 * feat: Added `UploadedFile(formData, contentType: ...)` to report a `Content-Type` other than the part's
+* fix: `MapService` with `autoIdAndDateFields` off now matches non-string ids by their string form, so a record with `id: 1` is found by `'1'` (as REST requests send it)
+* fix: `res.jsonp` now rejects a callback name that is not a plain (optionally dotted) identifier with 400 error, instead of writing it into the script, and awaits an async `serializer`
+* fix: Responses from an app with `encoders` now send `Vary: Accept-Encoding`. A body that already has a `content-encoding` header (e.g. a precompressed file) is no longer compressed again, and 204 and 304 responses are no longer compressed
+* fix: `chain` now stops at a handler that does not return `true`, like a route's own handlers, instead of running the remaining handlers. **Behaviour change:** a handler in a `chain` that returns nothing now ends the chain
+* fix: Hostname patterns with `|` (e.g. `example.com|api.example.com`) now match any of the whole hostnames, instead of throwing a `FormatException`
+* fix: `findService` now finds a service mounted after an earlier lookup of the same path failed
 
 ## 9.2.0
 

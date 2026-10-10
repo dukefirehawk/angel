@@ -471,6 +471,8 @@ abstract class Driver<
     return finalizers.then((_) {
       //if (res.isOpen) res.close();
 
+      // Chosen before headers are sent, since choosing can add a header.
+      var encoding = res.selectedEncoder;
       res.validateHeaders();
       for (var key in res.headers.keys) {
         app.logger.fine("Response header key: $key");
@@ -484,10 +486,6 @@ abstract class Driver<
 
       var outputBuffer = res.buffer?.toBytes() ?? <int>[];
 
-      var encoding = ResponseContext.selectEncoder(
-        res.encoders,
-        req.headers?.value('accept-encoding'),
-      );
       if (encoding != null) {
         setHeader(response, 'content-encoding', encoding.name);
         outputBuffer = encoding.encoder.convert(outputBuffer);

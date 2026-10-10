@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:angel3_container/mirrors.dart';
 import 'package:angel3_framework/angel3_framework.dart';
 import 'package:angel3_framework/http.dart';
+import 'package:angel3_mock_request/angel3_mock_request.dart';
 import 'package:http/http.dart' as http;
 import 'package:io/ansi.dart';
 import 'package:logging/logging.dart';
@@ -242,5 +243,31 @@ void main() {
     response = await client.patch(Uri.parse('$url/method'));
     print(response.body);
     expect(response.body, '"MJ"');
+  });
+
+  test('chain stops at a handler that returns false', () async {
+    var app = Angel()
+      ..get(
+        '/',
+        chain([
+          (req, res) => true,
+          (req, res) => false,
+          (req, res) => res.write('should not run'),
+        ]),
+      )
+      ..fallback((req, res) => 'fallback');
+    var rq = MockHttpRequest('GET', Uri(path: '/'));
+    await rq.close();
+    await AngelHttp(app).handleRequest(rq);
+    var body = await rq.response.transform(utf8.decoder).join();
+    expect(body, isNot(contains('should not run')));
+  });
+
+  test('findService finds a service mounted after an earlier miss', () {
+    var app = Angel();
+    expect(app.findService('later'), isNull);
+    var service = MapService();
+    app.use('/later', service);
+    expect(app.findService('later'), isNotNull);
   });
 }
