@@ -29,6 +29,7 @@ RequestHandler ioc(
       // Copy, since a const InjectionRequest has unmodifiable lists.
       explicit = InjectionRequest.constant(
         named: injection.named,
+        namedWithDefaults: injection.namedWithDefaults,
         required: injection.required,
         optional: [...injection.optional, ...optional],
         parameters: injection.parameters,
@@ -195,8 +196,11 @@ RequestHandler handleContained(
         false,
         container,
       );
-      // Leave unresolved parameters out, so their defaults apply.
-      if (value != null) named[Symbol(entry.key)] = value;
+      // Leave unresolved parameters with a default out, so it applies; others
+      // (e.g. `required String? q`) are passed null.
+      if (value != null || !injection.namedWithDefaults.contains(entry.key)) {
+        named[Symbol(entry.key)] = value;
+      }
     }
 
     return Function.apply(handler, args, named);
@@ -214,6 +218,11 @@ class InjectionRequest {
   /// Optional, typed data that can be passed to a DI-enabled method.
   final Map<String, Type> named;
 
+  /// The names in [named] of parameters with a default value, which are left
+  /// out (so the default applies) when they cannot be resolved, instead of
+  /// being passed `null`.
+  final Set<String> namedWithDefaults;
+
   /// A list of the arguments required for a DI-enabled method to run.
   final List required;
 
@@ -225,6 +234,7 @@ class InjectionRequest {
 
   const InjectionRequest.constant({
     this.named = const {},
+    this.namedWithDefaults = const {},
     this.required = const [],
     this.optional = const [],
     this.parameters = const {},
@@ -232,6 +242,7 @@ class InjectionRequest {
 
   InjectionRequest()
     : named = {},
+      namedWithDefaults = {},
       required = [],
       optional = [],
       parameters = {};
@@ -287,6 +298,7 @@ InjectionRequest preInject(Function handler, Reflector reflector) {
       }
     } else {
       injection.named[name] = type;
+      if (parameter.hasDefaultValue) injection.namedWithDefaults.add(name);
     }
   }
   return injection;

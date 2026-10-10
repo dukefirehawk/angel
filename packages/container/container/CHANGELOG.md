@@ -1,5 +1,9 @@
 # Change Log
 
+## 9.2.0
+
+* Added `ReflectedParameter.hasDefaultValue`, set by `MirrorsReflector`
+
 ## 9.1.0
 
 * Require Dart >= 3.13

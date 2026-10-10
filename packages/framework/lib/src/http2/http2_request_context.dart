@@ -157,7 +157,7 @@ class Http2RequestContext extends RequestContext<ServerTransportStream?> {
     // than buffered in memory. Once nobody can read it any more, it is
     // drained and discarded.
     late StreamSubscription<StreamMessage> sub;
-    var waitingForReader = false;
+    var waitingForReader = false, pausedByReader = false;
     void stopWaiting() {
       if (waitingForReader) {
         waitingForReader = false;
@@ -165,11 +165,30 @@ class Http2RequestContext extends RequestContext<ServerTransportStream?> {
       }
     }
 
+    void readerResumed() {
+      if (pausedByReader) {
+        pausedByReader = false;
+        sub.resume();
+      }
+    }
+
+    // A reader that cancels while paused (e.g. a body rejected mid-parse)
+    // never resumes, so cancelling and closing release its pause too.
+    void stopReading() {
+      stopWaiting();
+      readerResumed();
+    }
+
     req._body
       ..onListen = stopWaiting
-      ..onPause = (() => sub.pause())
-      ..onResume = (() => sub.resume())
-      ..onCancel = stopWaiting;
+      ..onPause = () {
+        if (!pausedByReader) {
+          pausedByReader = true;
+          sub.pause();
+        }
+      }
+      ..onResume = readerResumed
+      ..onCancel = stopReading;
 
     sub = stream.incomingMessages.listen(
       (msg) {
@@ -211,7 +230,7 @@ class Http2RequestContext extends RequestContext<ServerTransportStream?> {
       cancelOnError: true,
       onError: fail,
     );
-    req._onClose = stopWaiting;
+    req._onClose = stopReading;
 
     return c.future;
   }

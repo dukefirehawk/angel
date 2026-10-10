@@ -44,6 +44,11 @@ void main() {
       expect(await get('/x'), (200, '"x"'));
     });
 
+    test('passes null to an unresolved required named parameter', () async {
+      app.get('/', ioc(({required String? q}) => q ?? 'none'));
+      expect(await get('/'), (200, '"none"'));
+    });
+
     test('reads a @Header parameter of a non-primitive type', () async {
       app.get('/', ioc((@Header('x-foo') Object foo) => foo));
       expect(await get('/', headers: {'x-foo': 'bar'}), (200, '"bar"'));

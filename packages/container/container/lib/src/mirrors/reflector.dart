@@ -251,6 +251,7 @@ class _ReflectedMethodMirror extends ReflectedFunction {
       const MirrorsReflector().reflectType(mirror.type.reflectedType),
       !mirror.isOptional,
       mirror.isNamed,
+      hasDefaultValue: mirror.hasDefaultValue,
     );
   }
 

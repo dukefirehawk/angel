@@ -58,6 +58,17 @@ void main() {
     expect(http.uri.scheme, 'https');
   });
 
+  test('services still close when a shutdown hook fails', () async {
+    var app = Angel(reflector: MirrorsReflector());
+    var events = <String>[];
+    app.use('/todos', _ClosingService(events));
+    app.shutdownHooks.add((app) => throw StateError('hook failed'));
+    var http = AngelHttp(app);
+    await http.startServer();
+    await expectLater(http.close(), throwsStateError);
+    expect(events, ['service closed']);
+  });
+
   test('custom server generator', () {
     var app = Angel(reflector: MirrorsReflector());
     var http = AngelHttp.custom(app, HttpServer.bind);

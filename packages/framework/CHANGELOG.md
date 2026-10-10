@@ -16,13 +16,14 @@
 * fix: HTTP/2 error fallbacks (e.g. the 400 for a request that cannot be handled) now send their status, instead of resetting the stream
 * fix: HTTP/2 server pushes now send their status and headers; previously a pushed response had a body but no headers
 * fix: With `allowHttp1: false` (and no `onHttp1` listener), `AngelHttp2` now closes HTTP/1 connections, instead of leaving them hanging and keeping them in memory
-* fix: `app.shutdownHooks` now run when the server is closed, before services are closed; previously they never ran
+* fix: `app.shutdownHooks` now run when the server is closed, before services are closed; previously they never ran. Services are closed even if a hook fails, and the hook's error is then rethrown from `close()`
 * fix: Subclasses of `Angel` (e.g. `BaseAngelClient`) can now be constructed, instead of throwing `StateError: This container already has a singleton for Angel`. The app is registered in the container under its own type and as `Angel`
 * fix: After-modify hook listeners now receive a `modified` event, instead of `created`; WebSocket clients were sent `::created` for every modify
 * fix: `HookedService.fire` now passes its `result` to listeners, instead of `null`
 * fix: Canceling a `remove` in a before hook on a typed `HookedService` now returns the cancel result, instead of failing with a `TypeError`
 * fix: Buffered HTTP/1 responses now work for HTTP/1.0 clients (e.g. nginx's default `proxy_pass`), instead of failing. **Behaviour change:** buffered responses are now sent with `Content-Length` instead of chunked encoding, unless `res.chunked` is set to `true`
-* fix: Named parameters of DI handlers (`ioc`, controllers) that cannot be resolved are now left out, so their default values apply, instead of being passed `null` (which failed with a `TypeError` for non-nullable parameters)
+* fix: Named parameters of DI handlers (`ioc`, controllers) that have a default value and cannot be resolved are now left out, so the default applies, instead of being passed `null` (which failed with a `TypeError` for non-nullable parameters). Other unresolved named parameters (e.g. `required String? q`) are still passed `null`. Requires `angel3_container` 9.2.0, which reports default values through `MirrorsReflector`
+* feat: Added `InjectionRequest.namedWithDefaults`, the named parameters left out when they cannot be resolved
 * fix: `@Header`, `@Query`, `@CookieValue` and `@Session` parameters of any type (not only `String` and numbers) now read their value, instead of being made by the container
 * fix: Optional positional and named DI parameters whose type is not registered in the container, and cannot be constructed (e.g. an abstract class), now receive `null`, instead of failing the request
 * fix: Controllers with getters, setters, static or private methods can now be mounted; those members are no longer treated as routes

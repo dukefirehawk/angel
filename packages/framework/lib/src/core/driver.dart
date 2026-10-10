@@ -102,9 +102,10 @@ abstract class Driver<
     _sub?.cancel();
 
     // Hooks run first, while services and configuration are still
-    // available; app.close() tears those down and clears the hooks.
+    // available; app.close() tears those down and clears the hooks. It runs
+    // even if a hook fails, and the hook's error is then rethrown.
     return Future.wait(app.shutdownHooks.map(app.configure))
-        .then((_) => app.close());
+        .whenComplete(app.close);
   }
 
   Future<RequestContextType> createRequestContext(
