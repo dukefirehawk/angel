@@ -26,7 +26,7 @@
 * feat: Added `InjectionRequest.namedWithDefaults`, the named parameters left out when they cannot be resolved
 * fix: `@Header`, `@Query`, `@CookieValue` and `@Session` parameters of any type (not only `String` and numbers) now read their value, instead of being made by the container
 * fix: Optional positional and named DI parameters whose type is not registered in the container, and cannot be constructed (e.g. an abstract class), now receive `null`, instead of failing the request
-* fix: Controllers with getters, setters, static or private methods can now be mounted; those members are no longer treated as routes
+* fix: Controllers with getters, setters, static or private methods can now be mounted; those members are no longer treated as routes. Declarations without a function (e.g. fields listed by a reflector) are skipped too
 * fix: `MapService` now returns copies of its records, so changing a result (e.g. removing a field in an after hook) no longer changes the stored record
 * fix: Concurrent `modify`, `update` and `remove` calls on the same `MapService` record no longer fail with a 404
 * fix: `MapService.modify` no longer lets the data change `id` or `created_at` when `autoIdAndDateFields` is on; previously a PATCH could give two records the same id
