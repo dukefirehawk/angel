@@ -188,4 +188,35 @@ void main() {
       expect(await typed.remove('1'), {'x': 1});
     },
   );
+
+  group('a before hook that cancels without a result', () {
+    late HookedService<String?, Map<String, dynamic>, MapService> typed;
+
+    setUp(() {
+      typed = HookedService(MapService());
+      typed.beforeAll((e) => e.cancel());
+    });
+
+    test('makes index return an empty list', () async {
+      expect(await typed.index(), isEmpty);
+    });
+
+    test('makes read fail with a StateError', () async {
+      await expectLater(typed.read('1'), throwsStateError);
+    });
+  });
+
+  test('a canceled index may return a list of any element type', () async {
+    var typed = HookedService<String?, Map<String, dynamic>, MapService>(
+      MapService(),
+    );
+    typed.beforeIndexed.listen(
+      (e) => e.cancel(<Object>[
+        <String, dynamic>{'id': '1'},
+      ]),
+    );
+    expect(await typed.index(), [
+      {'id': '1'},
+    ]);
+  });
 }

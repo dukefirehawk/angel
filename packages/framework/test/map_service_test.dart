@@ -85,6 +85,14 @@ void main() {
       expect(texts(result), ['b', 'c', 'a', 'no rank']);
     });
 
+    test(r'sorts missing values last when descending too', () async {
+      await service.create({'text': 'no rank'});
+      var result = await service.index({
+        r'$sort': {'rank': -1},
+      });
+      expect(texts(result), ['a', 'b', 'c', 'no rank']);
+    });
+
     test(r'combines filter, $sort and $limit', () async {
       var result = await service.index({
         'query': {'done': 'false', r'$sort': 'text', r'$limit': '1'},

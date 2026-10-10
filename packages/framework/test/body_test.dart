@@ -178,6 +178,32 @@ void main() {
       throwsStateError,
     );
   });
+
+  test('a malformed form body is a 400', () async {
+    var req = await rawRequest('application/x-www-form-urlencoded', 'a=%zz');
+    await expectLater(
+      req.parseBody(),
+      throwsA(
+        isA<AngelHttpException>().having((e) => e.statusCode, 'status', 400),
+      ),
+    );
+  });
+
+  test('a multipart part without Content-Disposition is a 400', () async {
+    var req = await rawRequest(
+      'multipart/form-data; boundary=XYZ',
+      '--XYZ\r\n'
+          'Content-Type: text/plain\r\n\r\n'
+          'value\r\n'
+          '--XYZ--\r\n',
+    );
+    await expectLater(
+      req.parseBody(),
+      throwsA(
+        isA<AngelHttpException>().having((e) => e.statusCode, 'status', 400),
+      ),
+    );
+  });
 }
 
 class Todo {

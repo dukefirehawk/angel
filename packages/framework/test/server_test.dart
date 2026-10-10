@@ -48,6 +48,16 @@ void main() {
     expect(events, ['hook', 'service closed']);
   });
 
+  test('uri is https for a secure server', () async {
+    var ctx = SecurityContext()
+      ..useCertificateChain('dev.pem')
+      ..usePrivateKey('dev.key', password: 'dartdart');
+    var http = AngelHttp.fromSecurityContext(Angel(), ctx);
+    await http.startServer('127.0.0.1', 0);
+    addTearDown(http.close);
+    expect(http.uri.scheme, 'https');
+  });
+
   test('custom server generator', () {
     var app = Angel(reflector: MirrorsReflector());
     var http = AngelHttp.custom(app, HttpServer.bind);

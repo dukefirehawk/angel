@@ -8,6 +8,7 @@ import 'dart:typed_data';
 
 import 'package:angel3_http_exception/angel3_http_exception.dart';
 import 'package:angel3_route/angel3_route.dart';
+import 'package:collection/collection.dart' show IterableExtension;
 import 'package:file/file.dart';
 import 'package:http_parser/http_parser.dart';
 import 'package:mime/mime.dart';
@@ -156,7 +157,8 @@ abstract class ResponseContext<RawResponse>
   }
 
   /// Picks the first encoder in [encoders] named by [acceptEncoding], in the
-  /// client's order. `*` picks any encoder; entries with `q=0` are skipped.
+  /// client's order, ignoring case. `*` picks any encoder not rejected with
+  /// `q=0`; entries with `q=0` are skipped.
   static ({String name, Converter<List<int>, List<int>> encoder})?
   selectEncoder(
     Map<String, Converter<List<int>, List<int>>> encoders,
@@ -164,19 +166,28 @@ abstract class ResponseContext<RawResponse>
   ) {
     if (encoders.isEmpty || acceptEncoding == null) return null;
 
+    var accepted = <String>[], rejected = <String>{};
     for (var item in acceptEncoding.split(',')) {
       var parts = item.split(';');
-      var name = parts.first.trim();
+      var name = parts.first.trim().toLowerCase();
       if (name.isEmpty) continue;
-
-      var rejected = parts
+      var isRejected = parts
           .skip(1)
           .any((p) => _qZero.hasMatch(p.replaceAll(' ', '')));
-      if (rejected) continue;
+      if (isRejected) {
+        rejected.add(name);
+      } else {
+        accepted.add(name);
+      }
+    }
 
-      if (name == '*') name = encoders.keys.first;
-      var encoder = encoders[name];
-      if (encoder != null) return (name: name, encoder: encoder);
+    for (var name in accepted) {
+      var key = name == '*'
+          ? encoders.keys.firstWhereOrNull(
+              (k) => !rejected.contains(k.toLowerCase()),
+            )
+          : encoders.keys.firstWhereOrNull((k) => k.toLowerCase() == name);
+      if (key != null) return (name: key, encoder: encoders[key]!);
     }
 
     return null;
@@ -589,15 +600,7 @@ abstract class ResponseContext<RawResponse>
   }
 
   @override
-  void writeCharCode(int charCode) {
-    if (!isOpen && isBuffered) {
-      throw closed();
-    } else if (!isBuffered) {
-      add([charCode]);
-    } else {
-      buffer!.addByte(charCode);
-    }
-  }
+  void writeCharCode(int charCode) => write(String.fromCharCode(charCode));
 
   @override
   void writeln([Object? obj = '']) {

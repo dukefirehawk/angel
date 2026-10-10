@@ -23,6 +23,7 @@ class Http2RequestContext extends RequestContext<ServerTransportStream?> {
   Uri? _uri;
   HttpSession? _session;
   HttpSession Function()? _createSession;
+  void Function()? _onClose;
 
   Http2RequestContext._(this.container);
 
@@ -54,6 +55,11 @@ class Http2RequestContext extends RequestContext<ServerTransportStream?> {
 
     void finalize() {
       if (c.isCompleted) return;
+      if (req._method == null || req._path == null) {
+        throw AngelHttpException.badRequest(
+          message: 'Missing :method or :path pseudo-header.',
+        );
+      }
       req
         .._cookies = List.unmodifiable(cookies)
         .._uri = uri;
@@ -146,7 +152,26 @@ class Http2RequestContext extends RequestContext<ServerTransportStream?> {
       }
     }
 
-    stream.incomingMessages.listen(
+    // Body data is read only as fast as the handler consumes it, so an
+    // unread or slowly read body is held back by HTTP/2 flow control rather
+    // than buffered in memory. Once nobody can read it any more, it is
+    // drained and discarded.
+    late StreamSubscription<StreamMessage> sub;
+    var waitingForReader = false;
+    void stopWaiting() {
+      if (waitingForReader) {
+        waitingForReader = false;
+        sub.resume();
+      }
+    }
+
+    req._body
+      ..onListen = stopWaiting
+      ..onPause = (() => sub.pause())
+      ..onResume = (() => sub.resume())
+      ..onCancel = stopWaiting;
+
+    sub = stream.incomingMessages.listen(
       (msg) {
         // Nothing may throw out of this listener: it runs outside the
         // request's error zone, so an exception here would be unhandled
@@ -154,8 +179,20 @@ class Http2RequestContext extends RequestContext<ServerTransportStream?> {
         try {
           if (msg is DataStreamMessage) {
             finalize();
-            req._body.add(msg.bytes);
+            if (!req._body.isClosed && req._body.hasListener) {
+              req._body.add(msg.bytes);
+            } else if (!req._body.isClosed && !waitingForReader) {
+              // Wait for the handler to read the body (or close the request).
+              req._body.add(msg.bytes);
+              waitingForReader = true;
+              sub.pause();
+            }
           } else if (msg is HeadersStreamMessage) {
+            if (c.isCompleted) {
+              // Trailers: they must not change the request, which is already
+              // being handled, and are not exposed.
+              return;
+            }
             msg.headers.forEach(handleHeader);
             if (msg.endStream) finalize();
           }
@@ -164,12 +201,17 @@ class Http2RequestContext extends RequestContext<ServerTransportStream?> {
         }
       },
       onDone: () {
-        finalize();
+        try {
+          finalize();
+        } catch (e, st) {
+          fail(e, st);
+        }
         req._body.close();
       },
       cancelOnError: true,
       onError: fail,
     );
+    req._onClose = stopWaiting;
 
     return c.future;
   }
@@ -218,6 +260,7 @@ class Http2RequestContext extends RequestContext<ServerTransportStream?> {
   @override
   Future close() {
     _body.close();
+    _onClose?.call();
     return super.close();
   }
 

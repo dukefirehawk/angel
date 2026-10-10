@@ -103,6 +103,20 @@ void main() {
       return res.close();
     });
 
+    app.post('/trailers', (req, res) async {
+      await req.parseBody();
+      return {'path': req.path, 'trailer': req.headers!.value('x-trailer')};
+    });
+
+    app.post('/slow-body', (req, res) async {
+      await Future<void>.delayed(const Duration(milliseconds: 200));
+      var length = 0;
+      await req.body!.forEach((chunk) => length += chunk.length);
+      return length;
+    });
+
+    app.post('/ignore-body', (req, res) => 'ignored');
+
     app.get('/buffered-session', (req, res) {
       res
         ..useBuffer()
@@ -186,6 +200,126 @@ void main() {
     await connection.finish();
     return messages;
   }
+
+  /// Sends [headers] (and [body], then [trailers], if given) on a new
+  /// connection, and returns the response's status and body.
+  Future<(String?, String)> rawRequest(
+    List<Header> headers, {
+    List<int>? body,
+    List<Header>? trailers,
+  }) async {
+    var socket = await SecureSocket.connect(
+      serverRoot.host,
+      serverRoot.port,
+      onBadCertificate: (_) => true,
+      supportedProtocols: ['h2'],
+    );
+    var connection = ClientTransportConnection.viaSocket(socket);
+    var stream = connection.makeRequest(
+      headers,
+      endStream: body == null && trailers == null,
+    );
+    if (body != null) stream.sendData(body, endStream: trailers == null);
+    if (trailers != null) stream.sendHeaders(trailers, endStream: true);
+
+    String? status;
+    var out = BytesBuilder();
+    await for (var msg in stream.incomingMessages) {
+      if (msg is HeadersStreamMessage) {
+        for (var h in msg.headers) {
+          if (ascii.decode(h.name) == ':status') status = ascii.decode(h.value);
+        }
+      } else if (msg is DataStreamMessage) {
+        out.add(msg.bytes);
+      }
+    }
+    await connection.finish();
+    return (status, utf8.decode(out.takeBytes()));
+  }
+
+  List<Header> requestHeaders(String method, String path) => [
+    Header.ascii(':authority', serverRoot.authority),
+    Header.ascii(':method', method),
+    Header.ascii(':path', path),
+    Header.ascii(':scheme', serverRoot.scheme),
+  ];
+
+  test('trailers do not change the request', () async {
+    var (status, body) = await rawRequest(
+      [
+        ...requestHeaders('POST', '/trailers'),
+        Header.ascii('content-type', 'application/json'),
+      ],
+      body: utf8.encode('{}'),
+      trailers: [
+        Header.ascii(':path', '/elsewhere'),
+        Header.ascii('x-trailer', 'yes'),
+      ],
+    );
+    expect(status, '200');
+    expect(json.decode(body), {'path': 'trailers', 'trailer': null});
+  });
+
+  test('a request without :path is a 400', () async {
+    var (status, _) = await rawRequest([
+      Header.ascii(':authority', serverRoot.authority),
+      Header.ascii(':method', 'GET'),
+      Header.ascii(':scheme', serverRoot.scheme),
+    ]);
+    expect(status, '400');
+  });
+
+  group('request bodies', () {
+    final big = List<int>.filled(1024 * 1024, 120);
+
+    test('are complete when read late', () async {
+      var (status, body) = await rawRequest(
+        requestHeaders('POST', '/slow-body'),
+        body: big,
+      );
+      expect(status, '200');
+      expect(body, '${big.length}');
+    });
+
+    test('do not stop a handler that ignores them', () async {
+      var (status, body) = await rawRequest(
+        requestHeaders('POST', '/ignore-body'),
+        body: big,
+      );
+      expect(status, '200');
+      expect(body, '"ignored"');
+    });
+  });
+
+  test('app.serializer is used', () async {
+    var custom = Angel()
+      ..serializer = ((_) => 'custom')
+      ..get('/', (req, res) => {'a': 1});
+    var ctx = SecurityContext()
+      ..useCertificateChain('dev.pem')
+      ..usePrivateKey('dev.key', password: 'dartdart')
+      ..setAlpnProtocols(['h2'], true);
+    var h2 = AngelHttp2(custom, ctx);
+    var server = await h2.startServer();
+    addTearDown(h2.close);
+    var response = await client.get(
+      Uri.parse('https://127.0.0.1:${server.port}/'),
+    );
+    expect(response.body, 'custom');
+  });
+
+  test('close closes services once, with allowHttp1', () async {
+    var closes = 0;
+    var closing = Angel()..use('/s', _CountingService(() => closes++));
+    var ctx = SecurityContext()
+      ..useCertificateChain('dev.pem')
+      ..usePrivateKey('dev.key', password: 'dartdart')
+      ..setAlpnProtocols(['h2', 'http/1.1'], true);
+    var h2 = AngelHttp2(closing, ctx, allowHttp1: true);
+    await h2.startServer();
+    await h2.close();
+    expect(closes, 1);
+  });
 
   group('res.useBuffer()', () {
     test('sends one HEADERS frame, starting with :status', () async {
@@ -638,4 +772,12 @@ void main() {
       );
     });
   });
+}
+
+class _CountingService extends Service {
+  final void Function() onClose;
+  _CountingService(this.onClose);
+
+  @override
+  Future<void> close() async => onClose();
 }

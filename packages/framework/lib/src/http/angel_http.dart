@@ -33,14 +33,20 @@ class AngelHttp
   @override
   Uri get uri {
     return Uri(
-      scheme: 'http',
+      scheme: _secure ? 'https' : 'http',
       host: server?.address.address,
       port: server?.port,
     );
   }
 
-  AngelHttp._(super.app, super.serverGenerator, bool useZone)
-    : super(useZone: useZone);
+  final bool _secure;
+
+  AngelHttp._(
+    super.app,
+    super.serverGenerator,
+    bool useZone, [
+    this._secure = false,
+  ]) : super(useZone: useZone);
 
   factory AngelHttp(Angel app, {bool useZone = true}) {
     return AngelHttp._(app, HttpServer.bind, useZone);
@@ -61,9 +67,14 @@ class AngelHttp
     SecurityContext context, {
     bool useZone = true,
   }) {
-    return AngelHttp._(app, (address, int port) {
-      return HttpServer.bindSecure(address, port, context);
-    }, useZone);
+    return AngelHttp._(
+      app,
+      (address, int port) {
+        return HttpServer.bindSecure(address, port, context);
+      },
+      useZone,
+      true,
+    );
   }
 
   /// Creates an HTTPS server.

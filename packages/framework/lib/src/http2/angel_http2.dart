@@ -232,6 +232,7 @@ class AngelHttp2
     Http2RequestContext? correspondingRequest,
   ]) async {
     return Http2ResponseContext(app, response, correspondingRequest)
+      ..serializer = (app.serializer ?? json.encode)
       ..encoders.addAll(app.encoders);
   }
 

@@ -142,11 +142,7 @@ class MapService extends Service<String?, Map<String, dynamic>> {
       fields.add((sort.toString(), false));
     }
 
-    int compare(Object? a, Object? b) {
-      if (a == null || b == null) {
-        // Missing values sort last.
-        return a == null ? (b == null ? 0 : 1) : -1;
-      }
+    int compare(Object a, Object b) {
       if (a is Comparable && a.runtimeType == b.runtimeType) {
         return a.compareTo(b);
       }
@@ -158,7 +154,13 @@ class MapService extends Service<String?, Map<String, dynamic>> {
     var indexed = items.indexed.toList();
     indexed.sort((x, y) {
       for (var (field, descending) in fields) {
-        var c = compare(x.$2[field], y.$2[field]);
+        var a = x.$2[field], b = y.$2[field];
+        if (a == null || b == null) {
+          // Missing values sort last, in either direction.
+          if (a == null && b == null) continue;
+          return a == null ? 1 : -1;
+        }
+        var c = compare(a, b);
         if (c != 0) return descending ? -c : c;
       }
       return x.$1.compareTo(y.$1);

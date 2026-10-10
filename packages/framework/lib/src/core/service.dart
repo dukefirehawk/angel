@@ -229,7 +229,12 @@ class Service<Id, Data> extends Routable {
     } else if (_isType<T, int>()) {
       return int.parse(id.toString()) as T;
     } else if (_isType<T, bool>()) {
-      return (id == true || id.toString() == 'true') as T;
+      if (id is bool) return id as T;
+      return switch (id.toString()) {
+        'true' => true,
+        'false' => false,
+        _ => throw FormatException('Invalid ID "$id".'),
+      } as T;
     } else if (_isType<T, double>()) {
       return double.parse(id.toString()) as T;
     } else if (_isType<T, num>()) {

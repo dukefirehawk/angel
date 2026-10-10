@@ -39,6 +39,16 @@
 * fix: `chain` now stops at a handler that does not return `true`, like a route's own handlers, instead of running the remaining handlers. **Behaviour change:** a handler in a `chain` that returns nothing now ends the chain
 * fix: Hostname patterns with `|` (e.g. `example.com|api.example.com`) now match any of the whole hostnames, instead of throwing a `FormatException`
 * fix: `findService` now finds a service mounted after an earlier lookup of the same path failed
+* fix: `Service.parseId<bool>` now throws a `FormatException` (400 over REST) for ids other than `true` and `false`, instead of returning `false`. **Behaviour change**
+* fix: When a before hook cancels a call without a result, `HookedService.index` now returns an empty list, and other methods of a service whose `Data` is not nullable throw a `StateError` explaining the problem, instead of a `TypeError`. A canceled `index` may return a list of any element type
+* fix: `MapService` now sorts missing values last for descending `$sort` too
+* fix: `res.writeCharCode` now writes the character as UTF-8, instead of a single (truncated) byte
+* fix: A malformed `application/x-www-form-urlencoded` body (e.g. invalid percent-encoding) or a multipart part without `Content-Disposition` is now a 400 error, instead of 500
+* fix: `req.accepts` now honours a type or `type/*` rejected with `q=0` when a wildcard is also present (e.g. `text/html;q=0, */*`). `ResponseContext.selectEncoder` matches encodings case-insensitively, and `*` no longer picks an encoding rejected with `q=0`
+* fix: HTTP/2 request bodies are now read only as fast as the handler consumes them (using HTTP/2 flow control), so an unread or slowly read body is no longer buffered in memory. A body the handler does not read is discarded once the request is closed
+* fix: HTTP/2 trailers no longer change the request's path, host or headers, and a request without `:method` or `:path` is now a 400 error
+* fix: HTTP/2 responses now use `app.serializer`, like HTTP/1
+* fix: `AngelHttp.uri` now uses `https` for servers created with `AngelHttp.secure` or `AngelHttp.fromSecurityContext`
 
 ## 9.2.0
 

@@ -98,6 +98,34 @@ void main() {
       expect(() => req.accepts(null), throwsArgumentError);
     });
   });
+
+  test('a q=0 type beats a wildcard', () async {
+    var req = await acceptContentTypes(['text/html;q=0', '*/*']);
+    expect(req.accepts('text/html'), isFalse);
+    expect(req.accepts('application/json'), isTrue);
+
+    req = await acceptContentTypes(['text/*;q=0', '*/*']);
+    expect(req.accepts('text/plain'), isFalse);
+    expect(req.accepts('application/json'), isTrue);
+
+    req = await acceptContentTypes(['text/*;q=0', 'text/html']);
+    expect(req.accepts('text/html'), isTrue);
+  });
+
+  group('selectEncoder', () {
+    final encoders = {'gzip': gzip.encoder, 'deflate': zlib.encoder};
+
+    test('* does not pick an encoding rejected with q=0', () {
+      expect(
+        ResponseContext.selectEncoder(encoders, 'gzip;q=0, *')?.name,
+        'deflate',
+      );
+    });
+
+    test('ignores case', () {
+      expect(ResponseContext.selectEncoder(encoders, 'GZIP')?.name, 'gzip');
+    });
+  });
 }
 
 Future<RequestContext> acceptContentTypes([

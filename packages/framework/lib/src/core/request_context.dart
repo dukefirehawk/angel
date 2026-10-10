@@ -4,7 +4,13 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data' show BytesBuilder;
 import 'dart:io'
-    show Cookie, HeaderValue, HttpHeaders, HttpSession, InternetAddress;
+    show
+        Cookie,
+        HeaderValue,
+        HttpException,
+        HttpHeaders,
+        HttpSession,
+        InternetAddress;
 
 import 'package:angel3_container/angel3_container.dart';
 import 'package:angel3_http_exception/angel3_http_exception.dart';
@@ -245,6 +251,13 @@ abstract class RequestContext<RawRequest> {
     var slash = wanted.indexOf('/');
     var type = slash == -1 ? wanted : wanted.substring(0, slash);
 
+    // A more specific range rejected with q=0 beats a wildcard (RFC 9110).
+    var rejected = _rejectedRanges!;
+    if (rejected.contains(wanted)) return false;
+    if (rejected.contains('$type/*') && !accepted.contains(wanted)) {
+      return false;
+    }
+
     for (var range in accepted) {
       if (range == '*/*') {
         if (!strict) return true;
@@ -267,24 +280,29 @@ abstract class RequestContext<RawRequest> {
     var values = headers?['accept'];
     if (values == null || values.isEmpty) return null;
 
-    return _acceptRanges = [
-      for (var item in values.join(',').split(',')) ?_parseAcceptRange(item),
-    ];
-  }
-
-  static final RegExp _qZero = RegExp(r'^q=0(\.0*)?$');
-
-  static String? _parseAcceptRange(String item) {
-    var parts = item.split(';');
-    var range = parts.first.trim().toLowerCase();
-    if (range.isEmpty) return null;
-    for (var param in parts.skip(1)) {
-      if (_qZero.hasMatch(param.replaceAll(' ', '').toLowerCase())) {
-        return null;
+    var accepted = <String>[], rejected = <String>{};
+    for (var item in values.join(',').split(',')) {
+      var parts = item.split(';');
+      var range = parts.first.trim().toLowerCase();
+      if (range.isEmpty) continue;
+      var isRejected = parts
+          .skip(1)
+          .any((p) => _qZero.hasMatch(p.replaceAll(' ', '').toLowerCase()));
+      if (isRejected) {
+        rejected.add(range);
+      } else {
+        accepted.add(range);
       }
     }
-    return range;
+    _rejectedRanges = rejected;
+    return _acceptRanges = accepted;
   }
+
+  /// The ranges of the `Accept` header rejected with `q=0`; set with
+  /// [_acceptedRanges].
+  Set<String>? _rejectedRanges;
+
+  static final RegExp _qZero = RegExp(r'^q=0(\.0*)?$');
 
   /// Returns as `true` if the client's `Accept` header indicates that it will accept any response content type.
   bool get acceptsAll => _acceptsAllCache ??= accepts('*/*');
@@ -344,10 +362,16 @@ abstract class RequestContext<RawRequest> {
     } else if (contentType.type == 'application' &&
         contentType.subtype == 'x-www-form-urlencoded') {
       _uploadedFiles = [];
-      var parsed = await encoding.decoder
-          .bind(contentBody)
-          .join()
-          .then((s) => Uri.splitQueryString(s, encoding: encoding));
+      var parsed = await encoding.decoder.bind(contentBody).join().then((s) {
+        try {
+          return Uri.splitQueryString(s, encoding: encoding);
+        } on ArgumentError catch (e) {
+          // e.g. invalid percent-encoding
+          throw AngelHttpException.badRequest(
+            message: 'Invalid form body: ${e.message}',
+          );
+        }
+      });
       _bodyFields = Map<String, dynamic>.from(parsed);
     } else if (contentType.type == 'multipart' &&
         contentType.subtype == 'form-data' &&
@@ -361,10 +385,18 @@ abstract class RequestContext<RawRequest> {
         // A part with a filename is a file, even with a text Content-Type
         // (e.g. text/csv), so keep its bytes rather than decoding them.
         var isFile = _isFilePart(mime);
-        var part = HttpMultipartFormData.parse(
-          isFile ? _BinaryPart(mime) : mime,
-          defaultEncoding: encoding,
-        );
+        HttpMultipartFormData part;
+        try {
+          part = HttpMultipartFormData.parse(
+            isFile ? _BinaryPart(mime) : mime,
+            defaultEncoding: encoding,
+          );
+        } on HttpException catch (e) {
+          // e.g. a part without Content-Disposition
+          throw AngelHttpException.badRequest(
+            message: 'Invalid multipart body: ${e.message}',
+          );
+        }
         if (part.isBinary) {
           _uploadedFiles.add(
             UploadedFile(
