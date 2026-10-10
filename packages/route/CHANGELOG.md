@@ -4,6 +4,10 @@
 
 * Fixed middleware of a mounted router (e.g. `group(path, ..., middleware: [...])`) never running: `routes` now prepends it to the handlers of the router's routes, so `resolve`, `resolveAll` and `flatten` include it. **Security:** apps that guarded a route group with middleware (e.g. authentication) served the group's routes without running it
 * Middleware chained with `chain(...)` now also applies to a router mounted on the chain with `mount`
+* Fixed parameters restricted by a RegExp (e.g. `:id([0-9]+)`) or with text around them (e.g. `file-:id`, `:id.json`) having the value `Instance of '_RegExpMatch'` instead of the matched text
+* Fixed optional parameters (`:id?`, `:id?([0-9]+)`): `/x/:id?` now matches both `/x` and `/x/5`. Previously the `?` was read as part of the parameter, and the parameter could not be left out
+* An inline RegExp may now contain groups (nested up to two levels), e.g. `:color(red|gr(ee)n)`
+* Text before and after a parameter is now matched literally (e.g. the `.` in `v1.:id`), and the text after it may be longer than one character
 
 ## 9.1.0
 
