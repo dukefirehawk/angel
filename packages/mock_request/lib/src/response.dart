@@ -36,7 +36,6 @@ class MockHttpResponse extends Stream<List<int>> implements HttpResponse {
   }) {
     _buf = BytesBuilder(copy: copyBuffer != false);
     _bufferOutput = bufferOutput != false;
-    statusCode = 200;
   }
 
   @override
@@ -126,9 +125,10 @@ class MockHttpResponse extends Stream<List<int>> implements HttpResponse {
     statusCode = status;
   }
 
+  /// Writes [obj] with [encoding].
   @override
   void write(Object? obj) {
-    obj?.toString().codeUnits.forEach(writeCharCode);
+    if (obj != null) add(encoding.encode(obj.toString()));
   }
 
   @override
@@ -137,9 +137,7 @@ class MockHttpResponse extends Stream<List<int>> implements HttpResponse {
   }
 
   @override
-  void writeCharCode(int charCode) {
-    add([charCode]);
-  }
+  void writeCharCode(int charCode) => write(String.fromCharCode(charCode));
 
   @override
   void writeln([Object? obj = '']) {

@@ -136,13 +136,14 @@ class MockHttpRequest
 
   // @override
   Future flush() async {
-    _contentLength += _buf.length;
+    // add() has already counted these bytes in contentLength.
     _stream.add(_buf.takeBytes());
   }
 
+  /// Writes [obj] as UTF-8.
   @override
   void write(Object? obj) {
-    obj?.toString().codeUnits.forEach(writeCharCode);
+    if (obj != null) add(utf8.encode(obj.toString()));
   }
 
   @override
@@ -151,9 +152,7 @@ class MockHttpRequest
   }
 
   @override
-  void writeCharCode(int charCode) {
-    add([charCode]);
-  }
+  void writeCharCode(int charCode) => write(String.fromCharCode(charCode));
 
   @override
   void writeln([Object? obj = '']) {
