@@ -1,5 +1,23 @@
 part of 'router.dart';
 
+/// Thrown while parsing a path whose parameter cannot be read (invalid
+/// percent-encoding, or not a number for a typed parameter). The route then
+/// does not match, rather than failing the whole resolution.
+class _NoMatch implements Exception {
+  const _NoMatch();
+}
+
+String _decode(String s) {
+  try {
+    return Uri.decodeComponent(s);
+  } on ArgumentError {
+    throw const _NoMatch();
+  } on FormatException {
+    // e.g. `%FF`, which is not UTF-8
+    throw const _NoMatch();
+  }
+}
+
 class RouteGrammar {
   static const String notSlashRgx = r'([^/]+)';
   //static final RegExp rgx = RegExp(r'\((.+)\)');
@@ -258,7 +276,7 @@ class OptionalSegment extends ParameterSegment {
     return p.then(any<dynamic>([present, absent])).map((r) {
       var result = r.value![0] as RouteResult;
       var value = r.value![1];
-      if (value is String) result.addAll({name: Uri.decodeComponent(value)});
+      if (value is String) result.addAll({name: _decode(value)});
       return result;
     });
   }
@@ -288,16 +306,14 @@ class ParameterSegment extends RouteSegment {
 
   @override
   Parser<RouteResult> compile(bool isLast) {
-    return _compile().map(
-      (r) => RouteResult({name: Uri.decodeComponent(r.value!)}),
-    );
+    return _compile().map((r) => RouteResult({name: _decode(r.value!)}));
   }
 
   @override
   Parser<RouteResult> compileNext(Parser<RouteResult> p, bool isLast) {
     return p.then(_compile()).map((r) {
       return (r.value![0] as RouteResult)
-        ..addAll({name: Uri.decodeComponent(r.value![1] as String)});
+        ..addAll({name: _decode(r.value![1] as String)});
     });
   }
 }
@@ -309,31 +325,26 @@ class ParsedParameterSegment extends RouteSegment {
   ParsedParameterSegment(this.type, this.parameter);
 
   num getValue(String s) {
-    switch (type) {
-      case 'int':
-        return int.parse(s);
-      case 'double':
-        return double.parse(s);
-      default:
-        return num.parse(s);
-    }
+    var value = switch (type) {
+      'int' => int.tryParse(s),
+      'double' => double.tryParse(s),
+      _ => num.tryParse(s),
+    };
+    return value ?? (throw const _NoMatch());
   }
 
   @override
   Parser<RouteResult> compile(bool isLast) {
     return parameter._compile().map(
-      (r) => RouteResult({
-        parameter.name: getValue(Uri.decodeComponent(r.value!)),
-      }),
+      (r) => RouteResult({parameter.name: getValue(_decode(r.value!))}),
     );
   }
 
   @override
   Parser<RouteResult> compileNext(Parser<RouteResult> p, bool isLast) {
     return p.then(parameter._compile()).map((r) {
-      return (r.value![0] as RouteResult)..addAll({
-        parameter.name: getValue(Uri.decodeComponent(r.value![1] as String)),
-      });
+      return (r.value![0] as RouteResult)
+        ..addAll({parameter.name: getValue(_decode(r.value![1] as String))});
     });
   }
 }

@@ -8,6 +8,9 @@
 * Fixed optional parameters (`:id?`, `:id?([0-9]+)`): `/x/:id?` now matches both `/x` and `/x/5`. Previously the `?` was read as part of the parameter, and the parameter could not be left out
 * An inline RegExp may now contain groups (nested up to two levels), e.g. `:color(red|gr(ee)n)`
 * Text before and after a parameter is now matched literally (e.g. the `.` in `v1.:id`), and the text after it may be longer than one character
+* Fixed the resolve cache (`enableCache`, enabled by `flatten`) growing with every distinct path. It now holds at most `maxSize` results (default 1024), evicting the least recently used. Its key now includes the relative path and `strip`, so `resolveAll` with the same absolute path but a different relative path no longer returns another path's results
+* Added `enableCache(maxSize: ...)` and `Router.cacheLength`
+* A path whose parameter cannot be read (malformed percent-encoding, e.g. `%zz`, or text that is not a number for an `int`, `double` or `num` parameter) no longer matches that route, instead of throwing from `resolve`
 
 ## 9.1.0
 

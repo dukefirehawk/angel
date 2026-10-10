@@ -292,4 +292,13 @@ void main() {
       expect(body, isNot(contains('secret')));
     });
   }
+
+  test('a typed path parameter that is not a number is a 404', () async {
+    var app = Angel()..get('/n/int:id', (req, res) => req.params['id']);
+    var rq = MockHttpRequest('GET', Uri(path: '/n/abc'));
+    await rq.close();
+    await AngelHttp(app).handleRequest(rq);
+    await rq.response.drain<void>();
+    expect(rq.response.statusCode, 404);
+  });
 }
