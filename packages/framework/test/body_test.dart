@@ -99,6 +99,49 @@ void main() {
     expect(todo.completed, false);
   });
 
+  Future<RequestContext> rawRequest(String contentType, String body) async {
+    var rq = MockHttpRequest('POST', Uri(path: '/'))
+      ..headers.set('content-type', contentType)
+      ..write(body);
+    await rq.close();
+    return http.createRequestContext(rq, rq.response);
+  }
+
+  test('a parseBody call made during another waits for it', () async {
+    var req = await request(parse: false, bodyFields: {'a': 1});
+    var first = req.parseBody();
+    await req.parseBody();
+    expect(req.bodyAsMap, {'a': 1});
+    await first;
+  });
+
+  test('a failed parse fails later parseBody calls too', () async {
+    var req = await rawRequest('application/json', '{bad');
+    await expectLater(req.parseBody(), throwsFormatException);
+    await expectLater(req.parseBody(), throwsFormatException);
+    expect(req.hasParsedBody, isFalse);
+  });
+
+  test('uploads with a text Content-Type are files', () async {
+    var req = await rawRequest(
+      'multipart/form-data; boundary=XYZ',
+      '--XYZ\r\n'
+          'Content-Disposition: form-data; name="file"; filename="data.csv"\r\n'
+          'Content-Type: text/csv\r\n\r\n'
+          'a,b\r\n'
+          '--XYZ\r\n'
+          'Content-Disposition: form-data; name="field"\r\n\r\n'
+          'value\r\n'
+          '--XYZ--\r\n',
+    );
+    await req.parseBody();
+    expect(req.bodyAsMap, {'field': 'value'});
+    var file = req.uploadedFiles!.single;
+    expect(file.filename, 'data.csv');
+    expect(file.contentType.mimeType, 'text/csv');
+    expect(utf8.decode(await file.readAsBytes()), 'a,b');
+  });
+
   test('throws when body has not been parsed', () async {
     var req = await request(parse: false);
     expect(() => req.bodyAsObject, throwsStateError);

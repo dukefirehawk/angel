@@ -136,6 +136,57 @@ void main() {
     });
   });
 
+  group('returned records', () {
+    test('are copies of the stored records', () async {
+      (await service.read('0'))['text'] = 'changed';
+      (await service.index()).first['text'] = 'changed';
+      (await service.create({'text': 'd'}))['text'] = 'changed';
+      (await service.modify('1', {}))['text'] = 'changed';
+      (await service.update('2', {'text': 'c'}))['text'] = 'changed';
+      expect(texts(service.items), isNot(contains('changed')));
+    });
+  });
+
+  group('concurrent writes to one record', () {
+    test('all succeed with modify', () async {
+      await Future.wait([
+        service.modify('0', {'x': 1}),
+        service.modify('0', {'y': 2}),
+      ]);
+      var record = await service.read('0');
+      expect(record['x'], 1);
+      expect(record['y'], 2);
+    });
+
+    test('all succeed with update', () async {
+      await Future.wait([
+        service.update('0', {'text': 'x'}),
+        service.update('0', {'text': 'y'}),
+      ]);
+      expect(service.items, hasLength(3));
+      expect((await service.read('0'))['text'], 'y');
+    });
+  });
+
+  group('modify (PATCH) ids', () {
+    test('cannot change the id or created_at', () async {
+      var before = await service.read('0');
+      var result = await service.modify('0', {'id': '1', 'created_at': 'then'});
+      expect(result['id'], '0');
+      expect(result['created_at'], before['created_at']);
+      expect(service.items.where((i) => i['id'] == '1'), hasLength(1));
+    });
+  });
+
+  group('update (PUT) without auto ids', () {
+    test('keeps the record findable', () async {
+      var plain = MapService(autoIdAndDateFields: false);
+      await plain.update('1', {'id': '1', 'text': 'a'});
+      await plain.update('1', {'text': 'b'});
+      expect((await plain.read('1'))['text'], 'b');
+    });
+  });
+
   group('modify (PATCH)', () {
     test('a missing id is a 404 and creates nothing', () async {
       await expectLater(
