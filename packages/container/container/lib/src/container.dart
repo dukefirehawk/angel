@@ -149,6 +149,17 @@ class Container {
           continue;
         }
 
+        if (param.isNamed && !param.isRequired && !has(type)) {
+          // Reflectors may not tell `{Logger? log}` from `{required Dep dep}`:
+          // construct the value if possible, and leave it out otherwise.
+          try {
+            named[param.name] = make(type);
+          } catch (_) {
+            // Left out; a required parameter then fails in newInstance.
+          }
+          continue;
+        }
+
         var value = make(type);
         if (param.isNamed) {
           named[param.name] = value;

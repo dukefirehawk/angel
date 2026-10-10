@@ -18,6 +18,14 @@ void main() {
       expect(container.make<NamedOptional>().dep, isA<Dep>());
     });
 
+    test('leaves out an optional named parameter it cannot make', () {
+      expect(container.make<NamedNullable>().prefix, isNull);
+    });
+
+    test('makes an unregistered named parameter it can construct', () {
+      expect(container.make<NamedConstructible>().other, isA<Other>());
+    });
+
     test('keeps the default of an unregistered parameter', () {
       expect(container.make<PositionalDefault>().retries, 3);
       expect(container.make<NamedDefault>().retries, 3);
@@ -64,4 +72,16 @@ class Positionals {
   final Dep? dep;
   // `dep` is registered, but cannot be passed without `retries`.
   Positionals([this.retries = 3, this.dep]);
+}
+
+class NamedNullable {
+  final String? prefix;
+  NamedNullable({this.prefix});
+}
+
+class Other {}
+
+class NamedConstructible {
+  final Other other;
+  NamedConstructible({required this.other});
 }

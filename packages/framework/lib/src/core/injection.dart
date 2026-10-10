@@ -221,6 +221,12 @@ class InjectionRequest {
   /// The names in [named] of parameters with a default value, which are left
   /// out (so the default applies) when they cannot be resolved, instead of
   /// being passed `null`.
+  ///
+  /// [preInject] fills this from the reflector (`MirrorsReflector` reports
+  /// default values; some reflectors cannot). When writing an
+  /// [InjectionRequest] by hand, list such parameters here, e.g.
+  /// `named: {'page': int}, namedWithDefaults: {'page'}` for
+  /// `({int page = 1})`.
   final Set<String> namedWithDefaults;
 
   /// A list of the arguments required for a DI-enabled method to run.
