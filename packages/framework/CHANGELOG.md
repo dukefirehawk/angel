@@ -9,6 +9,9 @@
 * fix: Services with non-String ids (e.g. `int`) mounted with `app.use` now receive parsed ids; previously every REST request by id failed with a 500 error. An id of `null` or one that cannot be parsed now returns 400
 * fix: `Service.parseId` now parses nullable types (e.g. `int?`) like their non-nullable form, and throws a `FormatException` for a `null` id when the type cannot hold `'null'`, instead of a `TypeError`
 * fix: An HTTP/1.1 response with an invalid header that bypasses validation (e.g. via `headers.putIfAbsent`) and no body now fails with 500 error, instead of never being sent
+* fix: An HTTP/1 request that cannot become a `RequestContext` (e.g. repeated `X-HTTP-Method-Override` headers) now returns 400 error, instead of terminating the server process. This also applies to `AngelHttp.handleRequest` on a server created outside of `startServer`
+* fix: An HTTP/1 request with an invalid `Content-Type` (e.g. `foo`) is now treated as `text/plain`, instead of terminating the server process
+* feat: Added `Driver.handleRawRequestSafely`, which answers 400 when a request fails before it reaches the app
 
 ## 9.2.0
 

@@ -88,8 +88,10 @@ class AngelHttp
     return AngelHttp.fromSecurityContext(app, serverContext, useZone: useZone);
   }
 
+  /// Handles [request], for use with a server created outside of
+  /// [startServer]. Requests that cannot be handled get `400 Bad Request`.
   Future handleRequest(HttpRequest request) =>
-      handleRawRequest(request, request.response);
+      handleRawRequestSafely(request, request.response);
 
   @override
   void addCookies(HttpResponse response, Iterable<Cookie> cookies) =>

@@ -74,25 +74,10 @@ abstract class Driver<
     app.optimizeForProduction();
     _sub = server.listen((request) {
       var stream = createResponseStreamFromRawRequest(request);
-      // Errors here happen outside the per-request error zone (e.g. a
-      // malformed request that cannot become a RequestContext, or a
-      // broken HTTP/2 connection). Left unhandled they would
-      // terminate the whole server, so log them and drop the request.
+      // A broken connection (e.g. HTTP/2) errors outside the per-request
+      // error zone. Left unhandled it would terminate the whole server.
       stream.listen(
-        (response) {
-          handleRawRequest(request, response).catchError((
-            Object e,
-            StackTrace st,
-          ) {
-            app.logger.warning('Failed to handle request', e, st);
-            try {
-              setStatusCode(response, 400);
-              closeResponse(response);
-            } catch (_) {
-              // The response may already be unusable.
-            }
-          });
-        },
+        (response) => handleRawRequestSafely(request, response),
         onError: (Object e, StackTrace st) {
           app.logger.warning('Connection error', e, st);
         },
@@ -157,9 +142,32 @@ abstract class Driver<
 
   Stream<Response> createResponseStreamFromRawRequest(Request request);
 
+  /// Like [handleRawRequest], but never fails: errors that happen outside the
+  /// per-request error zone (e.g. a malformed request that cannot become a
+  /// [RequestContext]) are logged and answered with `400 Bad Request`.
+  /// Left unhandled they would terminate the whole server.
+  Future<void> handleRawRequestSafely(Request request, Response response) {
+    return handleRawRequest(request, response).catchError((
+      Object e,
+      StackTrace st,
+    ) {
+      app.logger.warning('Failed to handle request', e, st);
+      try {
+        setStatusCode(response, 400);
+        closeResponse(response);
+      } catch (_) {
+        // The response may already be unusable.
+      }
+    });
+  }
+
   /// Handles a single request.
   Future handleRawRequest(Request request, Response response) {
-    return createRequestContext(request, response).then((req) {
+    // Future.sync turns a synchronous throw into a failed Future, so callers'
+    // error handlers see it.
+    return Future.sync(() => createRequestContext(request, response)).then((
+      req,
+    ) {
       return createResponseContext(request, response, req).then((res) {
         Future handle() {
           var path = req.path;
