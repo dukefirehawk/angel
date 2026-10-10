@@ -272,7 +272,8 @@ class Angel extends Routable {
   /// Loads some base dependencies into the service container.
   void bootstrapContainer() {
     if (runtimeType != Angel) {
-      container.registerSingleton(this);
+      // Without `as`, this would register under Angel (the static type).
+      container.registerSingleton(this, as: runtimeType);
     }
 
     container.registerSingleton<Angel>(this);

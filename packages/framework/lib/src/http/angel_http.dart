@@ -5,6 +5,7 @@ import 'dart:io'
         Cookie,
         HttpRequest,
         HttpResponse,
+        HttpException,
         HttpServer,
         Platform,
         SecurityContext;
@@ -150,8 +151,13 @@ class AngelHttp
   ) => Stream.fromIterable([request.response]);
 
   @override
-  void setChunkedEncoding(HttpResponse response, bool value) =>
+  void setChunkedEncoding(HttpResponse response, bool value) {
+    try {
       response.headers.chunkedTransferEncoding = value;
+    } on HttpException {
+      // HTTP/1.0 has no chunked encoding; Content-Length is sent instead.
+    }
+  }
 
   @override
   void setContentLength(HttpResponse response, int length) =>

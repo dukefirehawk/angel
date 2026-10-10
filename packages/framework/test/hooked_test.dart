@@ -162,4 +162,30 @@ void main() {
 
     await svc.index({'provider': const Providers('testing')});
   });
+
+  test('after-modify listeners see a modified event', () async {
+    var created = await todoService.create({'text': 'a'});
+    String? name;
+    todoService.afterModified.listen((e) => name = e.eventName);
+    await todoService.modify(created['id'], {'text': 'b'});
+    expect(name, HookedServiceEvent.modified);
+  });
+
+  test('fire passes the result to listeners', () async {
+    Object? result;
+    todoService.afterCreated.listen((e) => result = e.result);
+    await todoService.fire(HookedServiceEvent.created, {'id': '1'});
+    expect(result, {'id': '1'});
+  });
+
+  test(
+    'a canceled remove on a typed service returns the cancel result',
+    () async {
+      var typed = HookedService<String?, Map<String, dynamic>, MapService>(
+        MapService(),
+      );
+      typed.beforeRemoved.listen((e) => e.cancel(<String, dynamic>{'x': 1}));
+      expect(await typed.remove('1'), {'x': 1});
+    },
+  );
 }

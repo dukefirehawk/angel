@@ -16,6 +16,12 @@
 * fix: HTTP/2 error fallbacks (e.g. the 400 for a request that cannot be handled) now send their status, instead of resetting the stream
 * fix: HTTP/2 server pushes now send their status and headers; previously a pushed response had a body but no headers
 * fix: With `allowHttp1: false` (and no `onHttp1` listener), `AngelHttp2` now closes HTTP/1 connections, instead of leaving them hanging and keeping them in memory
+* fix: `app.shutdownHooks` now run when the server is closed, before services are closed; previously they never ran
+* fix: Subclasses of `Angel` (e.g. `BaseAngelClient`) can now be constructed, instead of throwing `StateError: This container already has a singleton for Angel`. The app is registered in the container under its own type and as `Angel`
+* fix: After-modify hook listeners now receive a `modified` event, instead of `created`; WebSocket clients were sent `::created` for every modify
+* fix: `HookedService.fire` now passes its `result` to listeners, instead of `null`
+* fix: Canceling a `remove` in a before hook on a typed `HookedService` now returns the cancel result, instead of failing with a `TypeError`
+* fix: Buffered HTTP/1 responses now work for HTTP/1.0 clients (e.g. nginx's default `proxy_pass`), instead of failing. **Behaviour change:** buffered responses are now sent with `Content-Length` instead of chunked encoding, unless `res.chunked` is set to `true`
 
 ## 9.2.0
 

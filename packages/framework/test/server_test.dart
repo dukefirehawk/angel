@@ -31,6 +31,23 @@ void main() {
     });
   });
 
+  test('subclasses of Angel can be constructed', () {
+    var app = _MyApp();
+    expect(app.container.make<_MyApp>(), same(app));
+    expect(app.container.make<Angel>(), same(app));
+  });
+
+  test('shutdown hooks run on close, before services close', () async {
+    var app = Angel(reflector: MirrorsReflector());
+    var events = <String>[];
+    app.use('/todos', _ClosingService(events));
+    app.shutdownHooks.add((app) => events.add('hook'));
+    var http = AngelHttp(app);
+    await http.startServer();
+    await http.close();
+    expect(events, ['hook', 'service closed']);
+  });
+
   test('custom server generator', () {
     var app = Angel(reflector: MirrorsReflector());
     var http = AngelHttp.custom(app, HttpServer.bind);
@@ -270,6 +287,18 @@ class CustomCloseService extends Service {
     value = 3;
     super.close();
   }
+}
+
+class _MyApp extends Angel {
+  _MyApp() : super(reflector: MirrorsReflector());
+}
+
+class _ClosingService extends Service {
+  final List<String> events;
+  _ClosingService(this.events);
+
+  @override
+  Future<void> close() async => events.add('service closed');
 }
 
 @Expose('/foo')

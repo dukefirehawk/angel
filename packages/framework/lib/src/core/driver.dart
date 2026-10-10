@@ -101,16 +101,10 @@ abstract class Driver<
 
     _sub?.cancel();
 
-    return app.close().then(
-      (_) =>
-          Future.wait(app.shutdownHooks.map(app.configure))
-              .then((_) => Future.value()),
-    );
-    /*
-    return app.close().then((_) =>
-        Future.wait(app.shutdownHooks.map(app.configure))
-            .then((_) => Future.value(_server)));
-    */
+    // Hooks run first, while services and configuration are still
+    // available; app.close() tears those down and clears the hooks.
+    return Future.wait(app.shutdownHooks.map(app.configure))
+        .then((_) => app.close());
   }
 
   Future<RequestContextType> createRequestContext(
@@ -484,7 +478,9 @@ abstract class Driver<
       }
 
       setContentLength(response, res.buffer?.length ?? 0);
-      setChunkedEncoding(response, res.chunked ?? true);
+      // The length is known, so Content-Length is used unless chunked
+      // encoding is asked for (HTTP/1.0 clients do not support it).
+      setChunkedEncoding(response, res.chunked ?? false);
 
       var outputBuffer = res.buffer?.toBytes() ?? <int>[];
 

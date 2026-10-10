@@ -493,7 +493,7 @@ class HookedService<Id, Data, T extends Service<Id, Data>>
                     _getRequest(params),
                     _getResponse(params),
                     inner,
-                    HookedServiceEvent.created,
+                    HookedServiceEvent.modified,
                     id: id,
                     data: before.data,
                     params: localParams,
@@ -580,20 +580,19 @@ class HookedService<Id, Data, T extends Service<Id, Data>>
         .then((before) {
           if (before._canceled) {
             return afterRemoved
-                    ._emit(
-                      HookedServiceEvent(
-                        true,
-                        _getRequest(params),
-                        _getResponse(params),
-                        inner,
-                        HookedServiceEvent.removed,
-                        id: id,
-                        params: localParams,
-                        result: before.result,
-                      ),
-                    )
-                    .then((after) => after.result)
-                as Data;
+                ._emit(
+                  HookedServiceEvent(
+                    true,
+                    _getRequest(params),
+                    _getResponse(params),
+                    inner,
+                    HookedServiceEvent.removed,
+                    id: id,
+                    params: localParams,
+                    result: before.result,
+                  ),
+                )
+                .then((after) => after.result as Data);
           }
 
           return inner.remove(id, localParams).then((result) {
@@ -653,6 +652,7 @@ class HookedService<Id, Data, T extends Service<Id, Data>>
       null,
       inner,
       eventName,
+      result: result,
     );
     return fireEvent(dispatcher, ev, callback);
   }
