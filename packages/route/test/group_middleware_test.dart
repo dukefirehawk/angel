@@ -54,4 +54,33 @@ void main() {
     router.chain(['a']).mount('/m', Router<String>()..get('/x', 'h'));
     expect(handlersFor(router, '/m/x'), ['a', 'h']);
   });
+
+  group('chained middleware on a mounted router', () {
+    test('does not apply where the router is mounted without the chain', () {
+      var api = Router<String>()..get('/x', 'h');
+      var router = Router<String>();
+      router.chain(['auth']).mount('/private', api);
+      router.mount('/public', api);
+      expect(handlersFor(router, '/private/x'), ['auth', 'h']);
+      expect(handlersFor(router, '/public/x'), ['h']);
+    });
+
+    test('does not leak into another router', () {
+      var api = Router<String>()..get('/x', 'h');
+      Router<String>().chain(['auth']).mount('/private', api);
+      var other = Router<String>();
+      other.chain(['c']).mount('/a', api);
+      expect(handlersFor(other, '/a/x'), ['c', 'h']);
+    });
+
+    test('runs once per mount when mounted twice on one chain', () {
+      var api = Router<String>()..get('/x', 'h');
+      var router = Router<String>();
+      var chained = router.chain(['auth']);
+      chained.mount('/one', api);
+      chained.mount('/two', api);
+      expect(handlersFor(router, '/one/x'), ['auth', 'h']);
+      expect(handlersFor(router, '/two/x'), ['auth', 'h']);
+    });
+  });
 }

@@ -38,13 +38,14 @@ class Router<T> {
 
   /// All routes, with those of mounted routers joined to their mount path.
   ///
-  /// A mounted router's own middleware (e.g. from [group]) is prepended to
-  /// the handlers of each of its routes, since only this router's
-  /// [middleware] is applied separately when resolving.
+  /// The middleware of the link to a mounted router (see
+  /// [SymlinkRoute.middleware]) and the router's own (e.g. from [group]) are
+  /// prepended to the handlers of each of its routes, since only this
+  /// router's [middleware] is applied separately when resolving.
   List<Route<T>> get routes {
     return _routes.fold<List<Route<T>>>([], (out, route) {
       if (route is SymlinkRoute<T>) {
-        var middleware = route.router._middleware;
+        var middleware = [...route.middleware, ...route.router._middleware];
         for (var r in route.router.routes) {
           var joined = route.path.isEmpty ? r : Route.join(route, r);
           out.add(
@@ -429,12 +430,12 @@ class Router<T> {
   }
 
   /// Incorporates another [Router]'s routes into this one's.
-  SymlinkRoute<T> mount(String path, Router<T> router) {
-    final route = SymlinkRoute<T>(path, router);
-    _mounted[route.path] = router;
-    _routes.add(route);
-    //route._head = RegExp(route.matcher.pattern.replaceAll(_rgxEnd, ''));
+  SymlinkRoute<T> mount(String path, Router<T> router) =>
+      _mount(SymlinkRoute<T>(path, router));
 
+  SymlinkRoute<T> _mount(SymlinkRoute<T> route) {
+    _mounted[route.path] = route.router;
+    _routes.add(route);
     return route;
   }
 
@@ -536,13 +537,11 @@ class ChainedRouter<T> extends Router<T> {
     return super.mount(path, router)..name = name;
   }
 
+  /// Mounts [router] with the chained handlers running before its routes,
+  /// at this mount only: [router] itself is not changed.
   @override
-  SymlinkRoute<T> mount(String path, Router<T> router) {
-    final route = super.mount(path, router);
-    route.router._middleware.insertAll(0, _handlers);
-    //_root._routes.add(route);
-    return route;
-  }
+  SymlinkRoute<T> mount(String path, Router<T> router) =>
+      _mount(SymlinkRoute<T>(path, router, middleware: _handlers));
 
   @override
   ChainedRouter<T> chain(Iterable<T> middleware) {
