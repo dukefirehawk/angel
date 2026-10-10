@@ -22,6 +22,10 @@
 * fix: `HookedService.fire` now passes its `result` to listeners, instead of `null`
 * fix: Canceling a `remove` in a before hook on a typed `HookedService` now returns the cancel result, instead of failing with a `TypeError`
 * fix: Buffered HTTP/1 responses now work for HTTP/1.0 clients (e.g. nginx's default `proxy_pass`), instead of failing. **Behaviour change:** buffered responses are now sent with `Content-Length` instead of chunked encoding, unless `res.chunked` is set to `true`
+* fix: Named parameters of DI handlers (`ioc`, controllers) that cannot be resolved are now left out, so their default values apply, instead of being passed `null` (which failed with a `TypeError` for non-nullable parameters)
+* fix: `@Header`, `@Query`, `@CookieValue` and `@Session` parameters of any type (not only `String` and numbers) now read their value, instead of being made by the container
+* fix: Optional positional and named DI parameters whose type is not registered in the container, and cannot be constructed (e.g. an abstract class), now receive `null`, instead of failing the request
+* fix: Controllers with getters, setters, static or private methods can now be mounted; those members are no longer treated as routes
 
 ## 9.2.0
 

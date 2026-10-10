@@ -95,7 +95,8 @@ Future resolveInjection(
       requirement.last is Type) {
     var key = requirement.first;
     var type = requirement.last;
-    if (req.params.containsKey(key) ||
+    if (injection.parameters.containsKey(key) ||
+        req.params.containsKey(key) ||
         req.app!.configuration.containsKey(key) ||
         _primitiveTypes.contains(type)) {
       return await resolveInjection(
@@ -106,6 +107,23 @@ Future resolveInjection(
         throwOnUnresolved,
         container,
       );
+    } else if ((!throwOnUnresolved || injection.optional.contains(key)) &&
+        !container.has(type)) {
+      // An optional (or named) parameter of a type nothing is registered
+      // for: construct one if possible, but leave it unresolved otherwise
+      // (e.g. an abstract class) instead of failing the request.
+      try {
+        return await resolveInjection(
+          type,
+          injection,
+          req,
+          res,
+          throwOnUnresolved,
+          container,
+        );
+      } catch (_) {
+        return null;
+      }
     } else {
       return await resolveInjection(
         type,
@@ -169,8 +187,7 @@ RequestHandler handleContained(
     }
 
     for (var entry in injection.named.entries) {
-      var name = Symbol(entry.key);
-      named[name] = await resolveInjection(
+      var value = await resolveInjection(
         [entry.key, entry.value],
         injection,
         req,
@@ -178,6 +195,8 @@ RequestHandler handleContained(
         false,
         container,
       );
+      // Leave unresolved parameters out, so their defaults apply.
+      if (value != null) named[Symbol(entry.key)] = value;
     }
 
     return Function.apply(handler, args, named);

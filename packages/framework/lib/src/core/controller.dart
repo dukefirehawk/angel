@@ -112,6 +112,14 @@ class Controller {
     return (ReflectedDeclaration decl) {
       var methodName = decl.name;
 
+      // Only public instance methods can be routes.
+      if (decl.isStatic ||
+          methodName.startsWith('_') ||
+          decl.function!.isGetter ||
+          decl.function!.isSetter) {
+        return;
+      }
+
       // Ignore built-in methods.
       if (methodName != 'toString' &&
           methodName != 'noSuchMethod' &&
