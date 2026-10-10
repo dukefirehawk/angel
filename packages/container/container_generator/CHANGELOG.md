@@ -2,7 +2,6 @@
 
 ## 9.2.0
 
-* Require `angel3_container` 9.2.0
 * `ReflectedParameter.hasDefaultValue` is now set (with `contained`, or any `Reflectable` that has a `DeclarationsCapability`), so DI keeps the default of an unresolved parameter, as with `MirrorsReflector`
 * Fixed `GeneratedReflector.getName` returning `"name")` instead of `name`
 * Fixed `ReflectedFunction.invoke` always failing: it threw when a closure was available, and failed with a null error when one was not
