@@ -12,6 +12,10 @@
 * fix: An HTTP/1 request that cannot become a `RequestContext` (e.g. repeated `X-HTTP-Method-Override` headers) now returns 400 error, instead of terminating the server process. This also applies to `AngelHttp.handleRequest` on a server created outside of `startServer`
 * fix: An HTTP/1 request with an invalid `Content-Type` (e.g. `foo`) is now treated as `text/plain`, instead of terminating the server process
 * feat: Added `Driver.handleRawRequestSafely`, which answers 400 when a request fails before it reaches the app
+* fix: HTTP/2 buffered responses (`res.useBuffer()`) are now sent with their status, headers and body, instead of the stream being reset with no response.
+* fix: HTTP/2 error fallbacks (e.g. the 400 for a request that cannot be handled) now send their status, instead of resetting the stream
+* fix: HTTP/2 server pushes now send their status and headers; previously a pushed response had a body but no headers
+* fix: With `allowHttp1: false` (and no `onHttp1` listener), `AngelHttp2` now closes HTTP/1 connections, instead of leaving them hanging and keeping them in memory
 
 ## 9.2.0
 

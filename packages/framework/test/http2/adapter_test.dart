@@ -93,6 +93,23 @@ void main() {
       await res.close();
     });
 
+    app.get('/buffered', (req, res) {
+      res
+        ..useBuffer()
+        ..statusCode = 201
+        ..headers['X-Mixed-Case'] = 'yes'
+        ..cookies.add(Cookie('a', 'b'))
+        ..write('buffered body');
+      return res.close();
+    });
+
+    app.get('/buffered-session', (req, res) {
+      res
+        ..useBuffer()
+        ..write(req.session!.id);
+      return res.close();
+    });
+
     app.get('/param/:name', (req, res) => req.params);
 
     app.get('/query', (req, res) {
@@ -146,6 +163,75 @@ void main() {
   test('buffered response', () async {
     var response = await client.get(serverRoot);
     expect(response.body, 'Hello world');
+  });
+
+  /// Sends a GET and returns every message of the response, so tests can
+  /// check how it is framed (Http2Client merges all HEADERS frames).
+  Future<List<StreamMessage>> rawGet(String path) async {
+    var socket = await SecureSocket.connect(
+      serverRoot.host,
+      serverRoot.port,
+      onBadCertificate: (_) => true,
+      supportedProtocols: ['h2'],
+    );
+    var connection = ClientTransportConnection.viaSocket(socket);
+    var stream = connection.makeRequest([
+      Header.ascii(':authority', serverRoot.authority),
+      Header.ascii(':method', 'GET'),
+      Header.ascii(':path', path),
+      Header.ascii(':scheme', serverRoot.scheme),
+    ], endStream: true);
+    // Fails if the server resets the stream instead of ending it.
+    var messages = await stream.incomingMessages.toList();
+    await connection.finish();
+    return messages;
+  }
+
+  group('res.useBuffer()', () {
+    test('sends one HEADERS frame, starting with :status', () async {
+      var messages = await rawGet('/buffered');
+      var frames = messages.whereType<HeadersStreamMessage>().toList();
+      expect(frames, hasLength(1));
+      var names = [for (var h in frames.single.headers) ascii.decode(h.name)];
+      expect(names.first, ':status');
+      expect(
+        names,
+        everyElement(predicate<String>((n) => n == n.toLowerCase())),
+      );
+      expect(names.where((n) => n == 'content-length'), hasLength(1));
+    });
+
+    test('sends status, headers, cookies and body', () async {
+      var response = await client.get(serverRoot.replace(path: '/buffered'));
+      expect(response.statusCode, 201);
+      expect(response.headers['x-mixed-case'], 'yes');
+      expect(response.headers['set-cookie'], startsWith('a=b'));
+      expect(response.headers['content-length'], '13');
+      expect(response.body, 'buffered body');
+    });
+
+    test('compresses the body', () async {
+      var response = await client.get(
+        serverRoot.replace(path: '/buffered'),
+        headers: {'accept-encoding': 'gzip'},
+      );
+      expect(response.headers['content-encoding'], 'gzip');
+      expect(
+        response.headers['content-length'],
+        response.bodyBytes.length.toString(),
+      );
+      expect(utf8.decode(gzip.decode(response.bodyBytes)), 'buffered body');
+    });
+
+    test('sets the session cookie', () async {
+      var response = await client.get(
+        serverRoot.replace(path: '/buffered-session'),
+      );
+      expect(
+        response.headers['set-cookie'],
+        'DARTSESSID=${response.body}; Secure; HttpOnly',
+      );
+    });
   });
 
   group('headers', () {
@@ -308,6 +394,30 @@ void main() {
     await expectLater(h2Only.close(), completes);
   });
 
+  test('without allowHttp1, HTTP/1 connections are closed, not left '
+      'hanging', () async {
+    var ctx = SecurityContext()
+      ..useCertificateChain('dev.pem')
+      ..usePrivateKey('dev.key', password: 'dartdart')
+      ..setAlpnProtocols(['h2', 'http/1.1'], true);
+    var h2Only = AngelHttp2(Angel(), ctx);
+    addTearDown(h2Only.close);
+    var server = await h2Only.startServer();
+
+    var socket = await SecureSocket.connect(
+      '127.0.0.1',
+      server.port,
+      onBadCertificate: (_) => true,
+      supportedProtocols: ['http/1.1'],
+    );
+    socket.write('GET / HTTP/1.1\r\nHost: localhost\r\n\r\n');
+    await expectLater(
+      socket.drain<void>().timeout(const Duration(seconds: 5)),
+      completes,
+    );
+    socket.destroy();
+  });
+
   test('allowHttp1', () async {
     var response = await h1c.get(serverRoot);
     expect(response.body, 'Hello world');
@@ -450,35 +560,27 @@ void main() {
       p.requestHeaders.firstWhere((h) => ascii.decode(h.name) == ':path').value,
     );
 
-    /*
-    Future<String> getBody(ClientTransportStream stream) async {
-      await stream.outgoingMessages.close();
-      var bb = await stream.incomingMessages
-          .map((s) {
-            if (s is HeadersStreamMessage) {
-              for (var h in s.headers) {
-                print('${ASCII.decode(h.name)}: ${ASCII.decode(h.value)}');
-              }
-            } else if (s is DataStreamMessage) {
-              print(UTF8.decode(s.bytes));
+    Future<(String?, String)> getResponse(TransportStreamPush p) async {
+      String? status;
+      var body = BytesBuilder();
+      await for (var msg in p.stream.incomingMessages) {
+        if (msg is HeadersStreamMessage) {
+          for (var h in msg.headers) {
+            if (ascii.decode(h.name) == ':status') {
+              status = ascii.decode(h.value);
             }
-
-            return s;
-          })
-          .where((s) => s is DataStreamMessage)
-          .cast<DataStreamMessage>()
-          .fold<BytesBuilder>(
-              BytesBuilder(), (out, msg) => out..add(msg.bytes));
-      return UTF8.decode(bb.takeBytes());
+          }
+        } else if (msg is DataStreamMessage) {
+          body.add(msg.bytes);
+        }
+      }
+      return (status, utf8.decode(body.takeBytes()));
     }
-    */
 
     expect(getPath(pushA), '/a');
     expect(getPath(pushB), '/b');
-
-    // However, Chrome, Firefox, Edge all can
-    //expect(await getBody(pushA.stream), 'a');
-    //expect(await getBody(pushB.stream), 'b');
+    expect(await getResponse(pushA), ('200', 'a'));
+    expect(await getResponse(pushB), ('200', 'b'));
   });
 
   group('body parsing', () {
